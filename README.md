@@ -2,6 +2,15 @@
 
 A small exploration game for **LÖVE 11.5** and Lua. An original, SNES-inspired pixel traveler is stranded among floating chambers. Walk through the glowing stone arches to discover twelve connected rooms and find the violet escape portal. No additional assets or libraries are needed.
 
+
+## New 3D vertical slice
+
+The original 2D/LÖVE prototype below remains playable. A separate **Godot 4.5.2** project now provides the first 3D conversion milestone: a live Art Deco title screen, eight character variants, adapted introductions, third-person exploration across two connected chambers, a resonance-console interaction, an escape portal, checkpoints, settings, and touch/PC input.
+
+Run `./run-3d.sh` on this workspace, or import [godot/project.godot](godot/project.godot) in Godot. See the [3D guide](godot/README.md), [engine assessment](godot/docs/ENGINE_ASSESSMENT.md), [platform requirements](godot/docs/PLATFORMS.md), and [validation report](godot/docs/VALIDATION.md).
+
+This is a procedural 3D art blockout and functional slice, not the complete maze conversion or a shipped Android/iOS/Windows build. The device support floor remains provisional pending native-device testing.
+
 ## Play
 
 On launch, choose one of eight travelers: four male and four female variants, each with a different skin tone and clothing palette. Click a portrait or use the arrow keys, type a name (up to 20 characters), then click **Continue** or press **Enter**. Backspace edits your name. Your name appears beside the current room name. Selection and name last for the current application session, including F5 restarts and Ctrl+N mazes; launching again asks you to choose anew.

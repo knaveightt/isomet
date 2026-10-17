@@ -1,0 +1,14 @@
+{
+  "draw_calls": 42.0,
+  "frames": 1801,
+  "gpu": "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.18.54-gentoo-dist)",
+  "logical_viewport": "(1280.0, 720.0)",
+  "mean_ms": 16.6666379789006,
+  "mobile_certified": false,
+  "output_pixels": "(2880.0, 1620.0)",
+  "p95_ms": 16.908,
+  "platform": "Linux",
+  "quality": 1,
+  "renderer": "Compatibility",
+  "triangles": 6522.0
+}

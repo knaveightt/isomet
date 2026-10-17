@@ -611,3 +611,10 @@ The timeline inherits the game's 0.05-second update cap, so a heavily stalled wi
 `Intro.begin` now creates this image font for both captions and the reaction bubble. Captions use uppercase, high-contrast ivory lettering on the existing dark strips. The seven-pixel glyphs replace the former six-pixel antialiased font; integer canvas scaling preserves hard pixel edges at every supported window size. Caption placement and the exclamation bubble alignment were adjusted to fit the new lettering. The font covers the introduction's fixed English text rather than user-entered character names, which retain the existing general-purpose font.
 
 All three scenes were visually checked at their major animation stages after the change. Scene timing and gameplay are unchanged.
+
+
+## 18. 3D conversion milestone
+
+The new `godot/` directory is a separately runnable Godot 4.5.2/GDScript vertical slice; all preceding sections describe the preserved Lua/LÖVE prototype. No Lua gameplay files or room saves are overwritten. The new implementation includes a live 3D title, responsive menus, eight original character variants, the three introductory story settings, camera-relative movement and capsule collision, an interaction console, and an escape threshold across two connected chambers. Journey/settings JSON is independent of LÖVE’s room files.
+
+Detailed scope, source structure, reuse decisions and art direction are in `godot/docs/ENGINE_ASSESSMENT.md`. Native build prerequisites, provisional minimum devices and performance acceptance gates are in `godot/docs/PLATFORMS.md`. The actual local verification evidence is in `godot/docs/VALIDATION.md`. The twelve-room procedural generator, authored room workflow, production-quality art, and physical mobile/Windows certification are follow-up work after reviewing this slice.
