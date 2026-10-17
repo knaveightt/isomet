@@ -2,7 +2,7 @@
 
 ## Support status
 
-The project has a shared GDScript implementation and starter export presets for Windows x86-64, Android ARM64 and iOS ARM64. **No Windows executable, signed APK/AAB, Xcode archive, TestFlight build, or store submission has been produced or tested in this workspace.** The available host is Linux; no physical phone or Windows system is connected.
+The project has a shared GDScript implementation and starter export presets for Windows x86-64, Android ARM64 and iOS ARM64. A **Windows x64 release EXE and shareable ZIP have now been exported** using the official matching templates. The EXE is unsigned and has not been run natively on Windows. No signed Android APK/AAB, Xcode archive, TestFlight build, or store submission has been produced here. The available host is Linux; no physical phone or Windows system is connected.
 
 The following are **provisional minimum target devices**, not certified minimum supported devices. Final support requires passing the gates below on those devices; raise the floor or optimize further if any gate fails.
 

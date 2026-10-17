@@ -2,6 +2,10 @@
 
 An original Art Deco threshold observatory: petrol teal, ivory stone, aged brass, violet energy, and a suspended void. This is the **first conversion milestone**, not the completed 3D game or a release-ready mobile app. The original playable Lua/LÖVE game remains intact in the parent directory.
 
+## Ready-to-share Windows demo
+
+The exported [ISOMET-Windows-x64.zip](builds/windows/ISOMET-Windows-x64.zip) contains a self-contained Windows x64 release EXE, instructions and license notices. Send that ZIP; the recipient extracts it and double-clicks `ISOMET.exe`. Godot and the source folder are not required. The output is unsigned and has not yet been run on physical Windows hardware. Its embedded game data passed local smoke and rendering checks.
+
 ## Run
 
 Use **Godot 4.5.2 standard**, the version used to validate this project. Import `project.godot` and press F6 on `main.tscn` or F5 to run the project. No C# runtime or external asset package is required.

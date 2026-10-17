@@ -64,7 +64,7 @@ The benchmark's `--fixed-fps` option is intentionally not used for performance m
 ## Not validated
 
 - Physical Android or iOS devices, actual multi-touch, notch/gesture safe areas, native soft keyboards, battery use, thermal throttling or app-store lifecycle behavior.
-- Windows native export, driver behavior, signing, scaling or quit-to-desktop on an actual Windows installation.
+- Windows native execution, driver behavior, signing, scaling or quit-to-desktop on an actual Windows installation. Export itself has now succeeded; see below.
 - Android APK/AAB or iOS Xcode/IPA builds; required SDK/templates/signing hardware are not installed/configured here.
 - Sustained native 30 FPS phone or 60 FPS Windows guarantees, memory budgets or a certified minimum device list.
 - Full 3D procedural maze conversion, saved-room migration, final production art or final cinematic quality.
@@ -79,3 +79,17 @@ See [PLATFORMS.md](PLATFORMS.md) for proposed device floors, build prerequisites
 ![Playable observatory](images/gameplay.png)
 
 These screenshots show the procedural art blockout, not final production assets.
+
+
+## Windows release package
+
+A Windows x86-64 **release** build was exported using the official Godot 4.5.2 `windows_release_x86_64.exe` template. The embedded-PCK option puts the project assets inside `ISOMET.exe`; the shareable ZIP includes instructions, the Godot MIT license, upstream third-party notices and an EXE SHA-256 digest.
+
+- Export command completed successfully.
+- Binary inspection confirmed a Windows GUI PE32+ x86-64 executable.
+- The matching Linux engine loaded the PCK embedded in the Windows EXE; smoke checks passed.
+- The exported PCK also completed rendered gallery checks, including the title artwork and spatial portal shader.
+- ZIP CRC integrity and the embedded EXE SHA-256 were verified.
+- No Wine or physical Windows system is available here, so the actual Windows executable has **not** been run natively. This package is for the requested tester trial, not a Windows compatibility certification.
+
+The build artifacts are under `godot/builds/windows/`, ignored by Git. No user checkpoint or local settings file is included.

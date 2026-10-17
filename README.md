@@ -9,7 +9,9 @@ The original 2D/LÖVE prototype below remains playable. A separate **Godot 4.5.2
 
 Run `./run-3d.sh` on this workspace, or import [godot/project.godot](godot/project.godot) in Godot. See the [3D guide](godot/README.md), [engine assessment](godot/docs/ENGINE_ASSESSMENT.md), [platform requirements](godot/docs/PLATFORMS.md), and [validation report](godot/docs/VALIDATION.md).
 
-This is a procedural 3D art blockout and functional slice, not the complete maze conversion or a shipped Android/iOS/Windows build. The device support floor remains provisional pending native-device testing.
+A ready-to-share [Windows demo ZIP](godot/builds/windows/ISOMET-Windows-x64.zip) has now been exported. Extract it and run `ISOMET.exe`; no engine installation is required. It is unsigned and awaiting native Windows testing.
+
+This is a procedural 3D art blockout and functional slice, not the complete maze conversion or a released Android/iOS application. The device support floor remains provisional pending native-device testing.
 
 ## Play
 
