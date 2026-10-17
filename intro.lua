@@ -11,7 +11,7 @@ function I.begin(characters)
  -- Indices 1–4 are male, 5–8 female. Choose the other group once per introduction.
  I.companion=love.math.random(1,4)+(characters.selected<=4 and 4 or 0)
  I.canvas=love.graphics.newCanvas(320,180); I.canvas:setFilter('nearest','nearest')
- I.font=love.graphics.newFont(8); I.small=love.graphics.newFont(6)
+ I.font=require('pixel_font')(); I.small=I.font
 end
 function I.choose() I.phase='cutscene'; I.time=0 end
 function I.keypressed(key)
@@ -134,18 +134,18 @@ function I.renderScene()
  if chase<1 then person(I.characters.images[I.characters.selected],px+(tx-px)*chase,py+(ty-py)*chase-jump,1.6*(1-chase),1-chase*.6) end
  if t>=6.8 and t<9 then
   rect(px-10,py-48-jump,23,14,.95,.94,.83); rect(px-1,py-34-jump,4,4,.95,.94,.83)
-  g.setFont(I.font); g.setColor(.20,.16,.25); g.print('!!!',px-5,math.floor(py-45-jump))
+  g.setFont(I.font); g.setColor(.20,.16,.25); g.print('!!!',px-8,math.floor(py-46-jump))
  end
  -- Console-style caption strip and cinematic letterboxing.
  rect(0,0,320,12,.025,.03,.07); rect(0,163,320,17,.025,.03,.07)
- g.setFont(I.small); g.setColor(.76,.83,.89)
+ g.setFont(I.small); g.setColor(.96,.96,.88)
  local captions={'A quiet night. The television murmurs.','Dinner together. A familiar reflection.','Home, among the corn. Rain has just passed.'}
  local caption=captions[loc]
  if t>=3 and t<5 then caption='Something on the other side is waking.'
  elseif t>=5 and t<8 then caption='The void takes those you love.'
  elseif t>=8 and t<9 then caption='No! Wait!'
  elseif t>=9 then caption='You follow. Whatever waits beyond.' end
- g.printf(caption,8,168,304,'center')
+ g.printf(caption:upper(),8,167,304,'center')
  g.printf(locations[loc]:upper()..' / BEFORE THE SILENCE',8,3,304,'left')
  local darkness=math.max(1-clamp(t/1.1),progress(t,11,12.5))
  rect(0,0,320,180,0,0,0,darkness)

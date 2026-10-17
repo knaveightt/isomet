@@ -4,6 +4,7 @@ love={math={random=math.random},graphics={
  newFont=function() return {} end,
  getDimensions=function() return 800,600 end
 }}
+package.loaded['pixel_font']=function() return {} end
 local I=require('intro')
 for selected=1,8 do
  I.begin({selected=selected})

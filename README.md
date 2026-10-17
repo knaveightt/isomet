@@ -68,6 +68,7 @@ See [DESIGN.md](DESIGN.md) for a complete source walkthrough, algorithms, data f
 - `main.lua`: movement, room transitions, isometric rendering, void animation, interface
 - `characters.lua`: eight pixel portraits, selection screen, and character-name input
 - `intro.lua`: location selection, pixel-art environments, and timed introduction
+- `pixel_font.lua`: crisp 5×7 bitmap lettering for cutscene captions
 - `world.lua`: maze generation, plain-text serialization, validation
 - `conf.lua`: window and LÖVE configuration
 - `tests/world_test.lua`: generation and persistence checks

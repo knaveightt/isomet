@@ -602,3 +602,12 @@ While the intro is active, `main.lua` routes mouse and key events to it and retu
 The timeline inherits the game's 0.05-second update cap, so a heavily stalled window can take longer than 12.5 wall-clock seconds. There is no audio, skip control, branching dialogue, or saving partway through the intro. The loved one and dog are story actors only in this version; they have not been added as maze entities or a rescue mechanic.
 
 `tests/intro_test.lua` checks companion gender for every player index, selection wraparound, mouse confirmation, waiting for confirmation, timed completion, and completion reporting only once. Development verification also rendered all three environments at four cinematic stages and exercised the actual LÖVE handoff into room 1 at an 800 × 600 window size.
+
+
+## 17. Cutscene typography refinement
+
+`pixel_font.lua` builds an original uppercase 5 × 7 bitmap alphabet, plus the punctuation used by the introduction. Each glyph is encoded as seven five-bit row values. The builder writes opaque white glyph pixels to transparent `ImageData`, using magenta separator columns for LÖVE's image-font importer, and applies nearest-neighbor filtering.
+
+`Intro.begin` now creates this image font for both captions and the reaction bubble. Captions use uppercase, high-contrast ivory lettering on the existing dark strips. The seven-pixel glyphs replace the former six-pixel antialiased font; integer canvas scaling preserves hard pixel edges at every supported window size. Caption placement and the exclamation bubble alignment were adjusted to fit the new lettering. The font covers the introduction's fixed English text rather than user-entered character names, which retain the existing general-purpose font.
+
+All three scenes were visually checked at their major animation stages after the change. Scene timing and gameplay are unchanged.
