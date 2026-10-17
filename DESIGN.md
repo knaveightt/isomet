@@ -550,3 +550,55 @@ At each application launch, the world loads as before, then a character-selectio
 During play, the header combines the entered name and room name. Its text scales down to fit the window width. Names and portraits are session data: F5 and Ctrl+N preserve them, while closing and relaunching asks for a new selection. No character fields are added to persistent room files, and maze generation, collision, exits, and victory rules remain the same.
 
 `tests/characters_test.lua` runs under Lua 5.4 with small image and keyboard mocks. It checks eight distinct pixel images, wraparound and row navigation, name trimming and blank rejection, the 20-character limit, UTF-8 deletion, and mouse confirmation. LÖVE integration checks additionally exercised input gating before confirmation, selecting a female variant, retaining the choice after F5, and rendering at the minimum 800 × 600 window size.
+
+
+## 16. Location selection and introduction extension
+
+The launch flow is now **character creation → location choice → introduction → maze**. The previous sections describe the underlying maze and character systems; this section updates the launch behavior. `main.lua` imports `intro.lua` and calls `Intro.begin(Characters)` when either keyboard or mouse confirmation finishes character creation. The character button is now labeled Continue.
+
+### State and controls
+
+`intro.lua` owns `active`, `phase`, `selected`, `time`, `companion`, a reference to the character module, and rendering resources. `phase` moves from `location` to `cutscene` to `done`. This explicit state machine keeps cinematic progression separate from room simulation. `begin` randomly chooses exactly one companion from the opposite gender's four sprite indices. It creates a 320 × 180 canvas and small fonts for console-like captions.
+
+| Function | Responsibility |
+| --- | --- |
+| `I.begin(characters)` | Initialize location choice, companion, timer, and pixel rendering resources |
+| `I.choose()` | Start the cinematic at time zero using the selected location |
+| `I.keypressed(key)` | Navigate three choices and confirm; ignore navigation once the scene starts |
+| Local `layout()` | Share location-card positions between drawing and mouse detection |
+| `I.mousepressed(x,y,button)` | Select a location card or activate the confirmation button |
+| `I.update(dt)` | Advance the cutscene, returning true once when 12.5 seconds have elapsed |
+| Local `environment(location,t)` | Draw the bedroom, dining room, or ranch using pixel rectangles |
+| Local `dog(x,y,s,alpha)` | Draw the dog at a position, scale, and opacity |
+| Local `person(image,x,y,s,alpha)` | Draw an existing character sprite with a floor anchor |
+| `I.renderScene()` | Assemble scenery, vortex, actors, reaction, captions, and fades |
+| `I.draw(fonts)` | Draw location cards or present the cinematic canvas at integer scale |
+| Local `clamp`, `progress`, `rect` | Bound animation values, smooth transitions, and draw pixel-aligned blocks |
+
+The three location cards include thumbnails rendered from the same environment code used in their scenes. This avoids maintaining separate preview assets. Arrow keys wrap among the three choices; the button and Enter start the scene. Intro choices have no effect on procedural room data.
+
+### Timeline
+
+| Time in seconds | Event |
+| --- | --- |
+| 0–1.1 | Scene fades in from black |
+| 0–3 | Establish ordinary life: television, dinner, or the ranch |
+| 3–5 | Violet distortion and particles gather at the TV, mirror, or puddle |
+| 5–7 | The loved one moves and shrinks into the object |
+| 6–8 | The dog follows into the object |
+| 6.8–9 | The player repeatedly jumps beneath a `!!!` speech bubble |
+| 9–11 | The player chases into the same opening |
+| 11–12.5 | The scene fades to black |
+| 12.5 | Return control to `main.lua`, reset the room fade, and reveal room 1 |
+
+`progress` uses a clamped smoothstep curve, `v*v*(3-2*v)`, to interpolate actor positions and disappearance scale. The same destination coordinates drive the loved one, dog, and player. Timed poses are derived directly from elapsed time instead of independent counters, so animation phases remain synchronized. The jump is a repeated absolute sine wave. Text captions communicate each story beat, and the chosen character's existing image is reused rather than recreated.
+
+### Presentation and handoff
+
+Scene environments use rectangles and small fonts on a nearest-filtered low-resolution canvas. The city includes a bed, nighttime skyline, and scan-lined TV. The suburb includes chairs, dinner plates, a candle, and a framed mirror. The ranch includes a house, barn, fence, corn rows, and puddle. The canvas is centered at the largest fitting integer scale, with dark borders when the window aspect ratio differs.
+
+While the intro is active, `main.lua` routes mouse and key events to it and returns from `love.update` before movement and collision. Escape still quits; maze restart shortcuts wait until gameplay. `love.draw` shows the intro instead of the room. The world has already loaded, so the cinematic completion does not generate a new maze or replace room files. At completion, `fade=1` reveals the existing room-1 spawn. F5 and Ctrl+N subsequently restart the maze directly, preserving the earlier behavior.
+
+The timeline inherits the game's 0.05-second update cap, so a heavily stalled window can take longer than 12.5 wall-clock seconds. There is no audio, skip control, branching dialogue, or saving partway through the intro. The loved one and dog are story actors only in this version; they have not been added as maze entities or a rescue mechanic.
+
+`tests/intro_test.lua` checks companion gender for every player index, selection wraparound, mouse confirmation, waiting for confirmation, timed completion, and completion reporting only once. Development verification also rendered all three environments at four cinematic stages and exercised the actual LÖVE handoff into room 1 at an 800 × 600 window size.

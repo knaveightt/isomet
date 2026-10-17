@@ -4,7 +4,7 @@ A small exploration game for **LÖVE 11.5** and Lua. An original, SNES-inspired 
 
 ## Play
 
-On launch, choose one of eight travelers: four male and four female variants, each with a different skin tone and clothing palette. Click a portrait or use the arrow keys, type a name (up to 20 characters), then click **Enter the void** or press **Enter**. Backspace edits your name. Your name appears beside the current room name. Selection and name last for the current application session, including F5 restarts and Ctrl+N mazes; launching again asks you to choose anew.
+On launch, choose one of eight travelers: four male and four female variants, each with a different skin tone and clothing palette. Click a portrait or use the arrow keys, type a name (up to 20 characters), then click **Continue** or press **Enter**. Backspace edits your name. Your name appears beside the current room name. Selection and name last for the current application session, including F5 restarts and Ctrl+N mazes; launching again asks you to choose anew.
 
 From this folder, run:
 
@@ -25,6 +25,16 @@ You can also drag this project folder onto the LÖVE application.
 - **Escape:** quit
 
 Walk into an arch to change rooms. Walk into the violet portal to escape. Pillars block movement; the central paths stay open. Diagonal key combinations work too. There is no combat in this first version.
+
+## Introduction
+
+After character creation, choose **City**, **Suburb**, or **Midwest** using the mouse or arrow keys, then click **Begin your story** or press Enter. A roughly 12.5-second pixel-art scene shows your character, a randomly selected loved one of the opposite gender, and a dog.
+
+- **City:** a bedroom at night; the television pulls your loved one and dog inside.
+- **Suburb:** dinner in a dining room; a mirror becomes the doorway.
+- **Midwest:** a ranch surrounded by corn; a puddle opens into the void.
+
+Your character reacts and follows them, then the scene fades into the first maze room. Movement and maze shortcuts are paused during the introduction; Escape still quits. F5 and Ctrl+N restart gameplay directly without replaying the introduction. Location and companion choices last only for this launch and do not change saved room data.
 
 ## Persistent, editable rooms
 
@@ -57,6 +67,7 @@ See [DESIGN.md](DESIGN.md) for a complete source walkthrough, algorithms, data f
 
 - `main.lua`: movement, room transitions, isometric rendering, void animation, interface
 - `characters.lua`: eight pixel portraits, selection screen, and character-name input
+- `intro.lua`: location selection, pixel-art environments, and timed introduction
 - `world.lua`: maze generation, plain-text serialization, validation
 - `conf.lua`: window and LÖVE configuration
 - `tests/world_test.lua`: generation and persistence checks
@@ -64,3 +75,5 @@ See [DESIGN.md](DESIGN.md) for a complete source walkthrough, algorithms, data f
 Run the data checks with `lua tests/world_test.lua` or `luajit tests/world_test.lua`. They verify 200 seeded worlds, connected and reciprocal exits, a unique escape, clear central corridors, and exact room-file round trips. `ISOMET_SMOKE=1 love .` runs briefly and saves a screenshot in the save directory. For isolated testing on Linux, use `XDG_DATA_HOME=/tmp/isomet-test ISOMET_SMOKE=1 love .`.
 
 Character selection checks: `lua tests/characters_test.lua` (Lua 5.4). These cover unique sprites, keyboard/mouse selection, UTF-8 backspace, name length, and confirmation.
+
+Introduction state checks: `lua tests/intro_test.lua`. These cover opposite-gender companions, keyboard/mouse choices, timeline completion, and one-time handoff.

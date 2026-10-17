@@ -1,5 +1,6 @@
 local World=require('world')
 local Characters=require('characters')
+local Intro=require('intro')
 local rooms, roomId, player, visited, stars = {},1,{x=3,y=3}, {},{}
 local time,fade,steps,won=0,0,0,false
 local fonts, character, errorText = {},nil,nil
@@ -77,6 +78,7 @@ function love.update(dt)
   if os.getenv('ISOMET_SMOKE') and time>.7 then love.event.quit() end
   if os.getenv('ISOMET_SMOKE') and time>.55 and not love._smokeCaptured then love.graphics.captureScreenshot('smoke.png'); love._smokeCaptured=true end
   if errorText or Characters.active or won then return end
+  if Intro.active then if Intro.update(dt) then fade=1 end; return end
   local dx,dy=0,0
   if love.keyboard.isDown('up','w') then dy=dy-1 end
   if love.keyboard.isDown('down','s') then dy=dy+1 end
@@ -104,12 +106,17 @@ function love.textinput(text)
   if Characters.active and not errorText then Characters.textinput(text) end
 end
 function love.mousepressed(x,y,button)
-  if Characters.active and not errorText and Characters.mousepressed(x,y,button) then character=Characters.images[Characters.selected] end
+  if Intro.active and not errorText then Intro.mousepressed(x,y,button); return end
+  if Characters.active and not errorText and Characters.mousepressed(x,y,button) then character=Characters.images[Characters.selected]; Intro.begin(Characters) end
 end
 function love.keypressed(key)
+  if Intro.active and not errorText then
+    if key=='escape' then love.event.quit() else Intro.keypressed(key) end
+    return
+  end
   if Characters.active and not errorText then
     if key=='escape' then love.event.quit()
-    elseif Characters.keypressed(key) then character=Characters.images[Characters.selected] end
+    elseif Characters.keypressed(key) then character=Characters.images[Characters.selected]; Intro.begin(Characters) end
     return
   end
   if key=='escape' then love.event.quit() elseif key=='f5' then start(false)
@@ -127,6 +134,7 @@ function love.draw()
   g.setFont(fonts.body)
   if errorText then color(1,.7,.7); g.printf('Could not load room data\n\n'..errorText..'\n\nPress O to open the data folder and correct the files.\nF5: reload    Ctrl+N: replace with a new maze',60,150,w-120,'center'); return end
   if Characters.active then Characters.draw(fonts,time); return end
+  if Intro.active then Intro.draw(fonts); return end
   local r=rooms[roomId]
   scale=math.min((w-120)/((r.width+r.height)*30),(h-240)/((r.width+r.height)*15+80),1.5)
   ox=w/2-(r.width-r.height)*15*scale; oy=h/2-(r.width+r.height)*7.5*scale+35

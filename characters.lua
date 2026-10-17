@@ -80,7 +80,7 @@ function C.draw(fonts,time)
  g.setColor(.4,.65,.72); g.rectangle('line',w/2-220,top+313,440,39,5,5)
  g.setColor(.9,.93,.97); g.printf(C.name..(math.floor(time*2)%2==0 and '|' or ''),w/2-208,top+324,416,'center')
  g.setColor(.22,.40,.47); g.rectangle('fill',w/2-130,top+366,260,44,6,6)
- g.setColor(.88,.95,.94); g.printf('Enter the void',w/2-130,top+380,260,'center')
+ g.setColor(.88,.95,.94); g.printf('Continue',w/2-130,top+380,260,'center')
  g.setFont(fonts.small); g.setColor(.62,.73,.81); g.printf(C.message or 'Click a traveler or use arrow keys · Type your name (20 characters) · Enter to begin',0,top+427,w,'center')
 end
 return C
