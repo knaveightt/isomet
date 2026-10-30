@@ -4,6 +4,8 @@ A Lua / LÖVE 11.5 exploration-and-puzzle prototype. Follow a loved one into a r
 
 This update applies to the **2D LÖVE game**. The separate `godot/` prototype and existing Windows ZIPs are unchanged and still contain their earlier ISOMET builds.
 
+![Connected tabletop preview](docs/images/miswander-tabletop.png)
+
 ## Launch
 
 From this project folder:
@@ -14,15 +16,26 @@ love .
 
 The Miswander artwork appears for three seconds before world and character setup. Choose a traveler and name, then City, Suburb, or Midwest. The origin-specific pixel introduction leads into the refuge. Subsequent launches offer **Continue journey** or **New journey**.
 
-The title image is the selected artwork extracted from the supplied `Miswander_Master_Plan.pdf`. All in-game scenery, characters and puzzle pieces remain procedural art. No additional libraries are required.
+The splash, scenery, 32×32 characters, puzzle pieces and interface now share an original bright isometric/pixel-art direction, with warm parchment panels, turquoise controls, colorful roofs and planted courtyards. The earlier PDF title extraction remains archived in `assets/` and is no longer used by the game. No additional libraries are required.
 
-## Explore and unseal passages
+## Explore the tabletop maze
+
+The camera starts zoomed out over a **connected isometric tabletop**, rather than showing one room at a time. Discovered rooms remain visible together, joined by bridges. Unexplored destinations are concealed by mist. Winning a new passage challenge reveals its room, dissolves the fog and walks the character across the bridge as the camera scrolls. Discovery is saved with your journey.
+
+- **Mouse wheel / + / −:** zoom in or out.
+- **Right-button drag:** pan the tabletop.
+- **F:** return the view to following the character.
+- **Two-finger drag / pinch:** pan / zoom on touch devices (physical-device testing remains outstanding).
+
+Each environment has its own connected tabletop; story exits still lead to the next environment. Revealed rooms keep their names, while fog never shows hidden scenery, rewards or room names. New room tasks are now opened with **E / Inspect** after the crossing, so the reveal can play without a dialogue covering it.
+
+## Unseal passages
 
 Walk into an arch to try its passage. **The first crossing requires five match-three lines in eighteen neighboring swaps.** Tap two adjacent pieces, or use arrows and Space/Enter to select them. Match three or more horizontally or vertically. Cascades count, and dead boards reshuffle for free. A neighboring swap uses one attempt even if it makes no line; the pieces then return to their original positions. Selecting a distant piece simply changes selection.
 
 A successful passage unlock is permanent in both directions. Backtracking never requires replaying its board. Marked task rooms have their own inspect action: discover tools, use them at mechanisms, read companion traces, or face a warned timing challenge. Some mechanisms have an additional match-three task. Missing items cost nothing, and retreat is free.
 
-Arches show their destinations or illustrated marking names at the bottom of the screen; gold floor markers indicate item-gated routes. Use **Inspect** inside a room, and **Pip** for the next required clue. The map contains only visited locations and inspected passage information.
+Arches show their destinations or marking names at the bottom of the screen; gold floor markers indicate item-gated routes. Use **Inspect** inside a room, and **Pip** for the next required clue. The map contains only visited locations and inspected passage information.
 
 ## Controls
 
@@ -33,6 +46,7 @@ Arches show their destinations or illustrated marking names at the bottom of the
 | Inspect current room | E | Inspect button |
 | Satchel / notebook / map / Pip hint | I / J / M / P | Bottom toolbar |
 | Toggle/use lantern | L | Satchel → Supplies |
+| Zoom / pan / follow | Wheel or +/−; right-drag; F | Two-finger drag / pinch |
 | Pause | Escape | — |
 | Reload saved journey | F5 | — |
 | Start new traveler (asks first) | Ctrl+N | New journey at launch |
@@ -92,7 +106,7 @@ Dimensions must be 5–16; pillars must be inside the floor and should leave pat
 
 ## Source and design
 
-See [MISWANDER_IMPLEMENTATION.md](MISWANDER_IMPLEMENTATION.md) for plan coverage, source responsibilities, deliberate prototype substitutions and remaining work. [DESIGN.md](DESIGN.md) preserves the earlier source guide and links to the current campaign architecture. [docs/LEGACY_README.md](docs/LEGACY_README.md) archives the preceding prototype instructions.
+See [MISWANDER_IMPLEMENTATION.md](MISWANDER_IMPLEMENTATION.md) for plan coverage, source responsibilities, deliberate prototype substitutions and remaining work. See [ART_DIRECTION.md](ART_DIRECTION.md) for the new visual system, scrolling tabletop, fog rules and save compatibility. [DESIGN.md](DESIGN.md) preserves the earlier source guide and links to the current campaign architecture. [docs/LEGACY_README.md](docs/LEGACY_README.md) archives the preceding prototype instructions.
 
 ## Verification
 
@@ -103,6 +117,7 @@ lua tests/intro_test.lua
 lua tests/miswander_test.lua
 lua tests/savefile_test.lua
 luajit tests/miswander_test.lua
+lua tests/tabletop_test.lua
 python3 tests/run_love_tests.py
 ```
 

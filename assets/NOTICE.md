@@ -1,4 +1,6 @@
-# Title artwork
+# Archived title artwork
+
+The current game renders a new original procedural splash in `visual.lua`. This archived image is no longer loaded by the game.
 
 `miswander-title.png` is the selected title concept embedded on page 1 of the user-supplied `Miswander_Master_Plan.pdf` (Miswander Creator Master Plan, design draft 1.0, October 28, 2026). It was extracted without altering the artwork for use as the requested Miswander startup splash.
 

@@ -1,6 +1,7 @@
 local Campaign=require('campaign')
 local Progress=require('progress')
 local Match=require('match3')
+local V=require('visual')
 local A={};A.__index=A
 local function sortedKeys(t)local keys={};for k in pairs(t) do keys[#keys+1]=k end;table.sort(keys);return keys end
 function A.new(context,p)return setmetatable({ctx=context,p=p,clock=0,choice=1,scroll=0,attempt=0},A)end
@@ -14,14 +15,14 @@ function A:retreat()
  self:close()
  local l,s=Campaign.info(self.p.room)
  if s>=8 and s<=13 then
-  local anchors={1,2,3,1,4,5};self.ctx.teleport(Campaign.id(l,anchors[s-7]))
+  local anchors={1,2,3,1,4,5};self.ctx.teleport(Campaign.id(l,anchors[s-7]),true)
  end
  self:save()
 end
 function A:arrival()
  self.p.room=self.ctx.room();self.p.seen[self.p.room]=true;self:save()
  local l,s,d=Campaign.info(self.p.room)
- if d then self:inspect() elseif s==1 and not self.p.notes['arrival'..l] then
+ if d then self.toast='Room revealed. Press E or Inspect to explore.';self.toastTime=3 elseif s==1 and not self.p.notes['arrival'..l] then
   local origin=Campaign.origins[self.p.profile.origin]
   local text='Pip, a paper moth folded from discarded maps, settles near your lantern.\n\nPip: "Doors remember the way you open them. I can help when you are lost."\n\nWarden: "Welcome. Recover what is familiar. I will help you find a way."\n\n'..origin.anchors[(l-1)%3+1]..' rests where it does not belong. You followed '..origin.companion..' here.'
   self.p:note('arrival'..l,text);self:save();self:show(Campaign.worlds[l].name,text)
@@ -51,7 +52,7 @@ function A:finishBoard()
  if self.board.won then
   local callback=self.boardDone;self.board=nil
   callback();self:save()
-  if not self.panel then self:show('The pattern holds','The mechanism is restored. This passage will stay open.\n\nMatches completed. No life lost.')end
+  if not self.panel then self.toast='Passage unlocked — the fog lifts!';self.toastTime=3 end
  elseif self.board.failed then self.board=nil;self:fail('Challenge failed. You lost 1 life.') end
 end
 function A:fail(message)
@@ -77,7 +78,7 @@ function A:reward(id)
 end
 function A:shortcut(target)
  local key=Progress.edge(self.p.room,target)
- local function cross()self.p.unlocked[key]=true;self:close();self.ctx.teleport(target);self:arrival()end
+ local function cross()self.p.unlocked[key]=true;self:close();self.ctx.teleport(target,true);self:arrival()end
  if self.p.unlocked[key]then cross()
  elseif self.p.hearts<=0 then self:noLives()
  else self:startBoard('Unseal the side passage',cross)end
@@ -228,7 +229,7 @@ function A:map()
  local lines={};local l=Campaign.info(self.p.room)
  for _,id in ipairs(sortedKeys(self.p.seen)) do local rl,s,d=Campaign.info(id)
   if rl==l then local r=self.ctx.rooms[id];local exits={}
-   for side,target in pairs(r.exits) do local _,_,dest=Campaign.info(target);exits[#exits+1]=side..': '..(self.p.seen[target] and self.ctx.rooms[target].name or (self.p.inspected[target] and (dest and dest[1] or 'Inspected passage') or 'Unexplored')) end
+   for side,target in pairs(r.visualExits or r.exits) do local _,_,dest=Campaign.info(target);exits[#exits+1]=side..': '..(self.p.seen[target] and self.ctx.rooms[target].name or (self.p.inspected[target] and (dest and dest[1] or 'Inspected passage') or 'Unexplored')) end
    table.sort(exits);lines[#lines+1]=(id==self.p.room and '> ' or '')..r.name..'\n'..table.concat(exits,' · ')
   end
  end
@@ -247,6 +248,7 @@ function A:hint()
 end
 function A:update(dt)
  self.clock=self.clock+dt
+ self.toastTime=math.max(0,(self.toastTime or 0)-dt)
  if self.p:regenerate() then self:save() end
  if self.timing then self.timing.time=self.timing.time+dt end
  if self.panel and self.panel.title=='No lives remaining'then
@@ -286,60 +288,83 @@ end
 function A:wheelmoved(_,y)if self.panel then self.scroll=math.max(0,self.scroll-y*45) end end
 local gemColors={{.94,.43,.30},{.34,.75,.88},{.72,.53,.96},{.97,.77,.29},{.39,.80,.47},{.94,.52,.73}}
 local function gem(g,x,y,size,v)
- local c=gemColors[v];g.setColor(c[1]*.38,c[2]*.38,c[3]*.38);g.rectangle('fill',x+5,y+7,size-10,size-9,7,7)
- g.setColor(c);local cx,cy=x+size/2,y+size/2;local r=size*.32
- if v==1 then g.polygon('fill',cx,cy-r,cx+r,cy+r,cx-r,cy+r)
- elseif v==2 then g.polygon('fill',cx,cy-r,cx+r,cy,cx,cy+r,cx-r,cy)
- elseif v==3 then g.rectangle('fill',cx-r,cy-r,r*2,r*2,3,3)
- elseif v==4 then for a=0,5 do local angle=a*math.pi/3;g.circle('fill',cx+math.cos(angle)*r*.55,cy+math.sin(angle)*r*.55,r*.44)end;g.circle('fill',cx,cy,r*.6)
- elseif v==5 then g.ellipse('fill',cx,cy,r*.72,r)
- else g.circle('fill',cx,cy,r) end
- g.setColor(1,1,1,.65);g.rectangle('fill',math.floor(cx-r*.4),math.floor(cy-r*.55),math.max(3,size*.13),math.max(3,size*.08))
+ local c=gemColors[v];local cx,cy=x+size/2,y+size/2;local r=math.floor(size*.34)
+ g.setColor(.21,.35,.30,.20);g.ellipse('fill',cx,cy+r*.85,r*.95,r*.3)
+ local function shade(q)g.setColor(math.min(1,c[1]*q),math.min(1,c[2]*q),math.min(1,c[3]*q))end
+ if v==1 then
+  shade(.67);g.polygon('fill',cx-r,cy-r*.4,cx-r*.6,cy-r,cx+r*.6,cy-r,cx+r,cy-r*.4,cx,cy+r)
+  shade(1.15);g.polygon('fill',cx-r,cy-r*.4,cx-r*.6,cy-r,cx+r*.6,cy-r,cx+r,cy-r*.4)
+  shade(.96);g.polygon('fill',cx-r,cy-r*.4,cx+r*.4,cy-r*.4,cx,cy+r)
+ elseif v==2 then
+  shade(.69);g.polygon('fill',cx,cy-r,cx+r,cy,cx,cy+r,cx-r,cy)
+  shade(1.2);g.polygon('fill',cx,cy-r,cx,cy,cx-r,cy)
+  shade(1);g.polygon('fill',cx,cy-r,cx+r,cy,cx,cy)
+  shade(.85);g.polygon('fill',cx-r,cy,cx,cy,cx,cy+r)
+ elseif v==3 then
+  shade(.68);g.rectangle('fill',cx-r,cy-r,r*2,r*2,3,3)
+  shade(1.2);g.polygon('fill',cx-r,cy-r,cx+r,cy-r,cx+r-5,cy-r+5,cx-r+5,cy-r+5)
+  shade(1);g.rectangle('fill',cx-r+5,cy-r+5,r*2-10,r*2-10)
+  shade(.84);g.polygon('fill',cx+r-5,cy-r+5,cx+r,cy-r,cx+r,cy+r,cx+r-5,cy+r-5)
+ elseif v==4 then
+  shade(.82);for i=0,7 do local a=i*math.pi/4;g.rectangle('fill',cx+math.cos(a)*r*.75-3,cy+math.sin(a)*r*.75-3,6,6)end
+  shade(1);g.circle('fill',cx,cy,r*.78);shade(1.18);g.circle('fill',cx-2,cy-2,r*.54)
+  g.setColor(1,.98,.74);g.rectangle('fill',cx-2,cy-r*.4,4,r*.8)
+ elseif v==5 then
+  shade(.73);g.polygon('fill',cx-r*.7,cy+r*.5,cx-r*.8,cy-r*.3,cx+r*.5,cy-r,cx+r*.8,cy+r*.2,cx,cy+r)
+  shade(1.15);g.polygon('fill',cx-r*.7,cy+r*.5,cx-r*.8,cy-r*.3,cx+r*.5,cy-r,cx,cy)
+  g.setColor(.81,1,.65);g.setLineWidth(2);g.line(cx-r*.45,cy+r*.5,cx+r*.4,cy-r*.65);g.setLineWidth(1)
+ else
+  shade(.75);g.polygon('fill',cx-r,cy-2,cx+r,cy-2,cx,cy+r)
+  shade(1);g.circle('fill',cx-r*.42,cy-r*.32,r*.58);g.circle('fill',cx+r*.42,cy-r*.32,r*.58);g.polygon('fill',cx-r*.95,cy-r*.2,cx+r*.95,cy-r*.2,cx,cy+r*.85)
+ end
+ g.setColor(1,1,.94,.9);g.rectangle('fill',math.floor(cx-r*.38),math.floor(cy-r*.58),math.max(3,size*.13),math.max(3,size*.07))
 end
 function A:draw(fonts)
  local g=love.graphics;local w,h=g.getDimensions();self.hits={}
- g.setColor(.015,.025,.055,.95);g.rectangle('fill',0,0,w,h)
+ V.background(w,h,self.clock)
+ V.card(16,16,w-32,h-32,false)
  if self.panel then
   local left=math.max(24,(w-850)/2);local width=w-left*2
-  g.setFont(fonts.title);g.setColor(.98,.83,.48);g.printf(self.panel.title,left,35,width,'left')
+  g.setFont(fonts.title);V.color(V.teal);g.printf(self.panel.title,left,35,width,'left')
   local buttonHeight=44;local bottom=h-30;local buttonsY=bottom-#self.panel.buttons*(buttonHeight+8)
   local textTop=90;local textHeight=math.max(60,buttonsY-textTop-24)
   g.setFont(fonts.body);local _,lines=fonts.body:getWrap(self.panel.text,width-12);local maxScroll=math.max(0,#lines*fonts.body:getHeight()*1.2-textHeight)
   self.scroll=math.min(self.scroll,maxScroll)
-  g.setScissor(left,textTop,width,textHeight);g.setColor(.83,.88,.9);g.printf(self.panel.text,left,textTop-self.scroll,width-12,'left');g.setScissor()
-  if maxScroll>0 then g.setFont(fonts.small);g.setColor(.64,.78,.82);g.printf('Scroll / Page Up & Down to read more',left,buttonsY-20,width,'right') end
+  g.setScissor(left,textTop,width,textHeight);V.color(V.ink);g.printf(self.panel.text,left,textTop-self.scroll,width-12,'left');g.setScissor()
+  if maxScroll>0 then g.setFont(fonts.small);V.color(V.muted);g.printf('Scroll / Page Up & Down to read more',left,buttonsY-20,width,'right') end
   for i,button in ipairs(self.panel.buttons) do
-   local y=buttonsY+(i-1)*(buttonHeight+8);g.setColor(i==self.choice and .23 or .11,.30,.35);g.rectangle('fill',left,y,width,buttonHeight,6,6)
-   g.setColor(.92,.96,.92);g.setFont(fonts.body);g.printf(button[1],left+10,y+14,width-20,'center')
+   local y=buttonsY+(i-1)*(buttonHeight+8);V.button(left,y,width,buttonHeight,i==self.choice)
+   g.setColor(1,1,.94);g.setFont(fonts.body);g.printf(button[1],left+10,y+14,width-20,'center')
    self.hits[#self.hits+1]={x=left,y=y,w=width,h=buttonHeight,action=button[2]}
   end
  elseif self.board then
   local b=self.board;local size=math.floor(math.min(62,(h-250)/7,(w-80)/7));local left=math.floor((w-size*7)/2);local top=130
   self.boardLayout={left=left,top=top,size=size}
-  g.setFont(fonts.title);g.setColor(.98,.84,.49);g.printf(self.boardTitle,20,24,w-40,'center')
-  g.setFont(fonts.body);g.setColor(.88,.93,.94);g.printf('Matches '..math.min(b.count,b.goal)..' / '..b.goal..'     Swaps '..b.moves..'     Hearts '..self.p.hearts..' / 5',0,68,w,'center')
-  local filled=math.min(1,b.count/b.goal);g.setColor(.14,.22,.28);g.rectangle('fill',left,103,size*7,7);g.setColor(.41,.82,.64);g.rectangle('fill',left,103,size*7*filled,7)
+  V.card(left-8,top-8,size*7+16,size*7+16,false)
+  g.setFont(fonts.title);V.color(V.teal);g.printf(self.boardTitle,20,24,w-40,'center')
+  g.setFont(fonts.body);V.color(V.ink);g.printf('Matches '..math.min(b.count,b.goal)..' / '..b.goal..'     Swaps '..b.moves..'     Hearts '..self.p.hearts..' / 5',0,68,w,'center')
+  local filled=math.min(1,b.count/b.goal);g.setColor(.79,.81,.66);g.rectangle('fill',left,103,size*7,7);g.setColor(.33,.70,.44);g.rectangle('fill',left,103,size*7*filled,7)
   for y=1,7 do for x=1,7 do local xx,yy=left+(x-1)*size,top+(y-1)*size
-   g.setColor((x+y)%2==0 and .13 or .10,.18,.27);g.rectangle('fill',xx+1,yy+1,size-2,size-2,4,4)
+   g.setColor((x+y)%2==0 and .88 or .81,.88,.74);g.rectangle('fill',xx+1,yy+1,size-2,size-2,4,4)
    gem(g,xx,yy,size,b.board[(y-1)*7+x])
    if (b.selected and b.selected.x==x and b.selected.y==y) or (self.cursor.x==x and self.cursor.y==y) then
-    g.setColor(1,.91,.63);g.setLineWidth(2);g.rectangle('line',xx+2,yy+2,size-4,size-4,4,4);g.setLineWidth(1)
+    g.setColor(.98,.55,.15);g.setLineWidth(2);g.rectangle('line',xx+2,yy+2,size-4,size-4,4,4);g.setLineWidth(1)
    end
   end end
-  g.setFont(fonts.body);g.setColor(.86,.9,.91);g.printf(b.message,24,top+size*7+17,w-48,'center')
-  g.setFont(fonts.small);g.setColor(.83,.73,.61);g.printf('Failure loses 1 heart. Retreat is free. Successful passage unlocks persist.',20,h-80,w-40,'center')
-  g.setColor(.64,.76,.82);g.printf('Tap two neighbors · Arrows + Space/Enter · 18 swaps to reach the goal · Esc: retreat',20,h-58,w-40,'center')
+  g.setFont(fonts.body);V.color(V.ink);g.printf(b.message,24,top+size*7+17,w-48,'center')
+  g.setFont(fonts.small);V.color(V.muted);g.printf('Failure loses 1 heart. Retreat is free. Successful passage unlocks persist.',20,h-80,w-40,'center')
+  V.color(V.muted);g.printf('Tap two neighbors · Arrows + Space/Enter · 18 swaps to reach the goal · Esc: retreat',20,h-58,w-40,'center')
   self.hits[1]={x=w/2-110,y=h-36,w=220,h=28,action=function()self:retreat()end};g.printf('Return safely to maze',0,h-30,w,'center')
  elseif self.timing then
   local task=self.timing;local l,_,d=Campaign.info(task.id);local phase=(task.time/(task.assist and 5 or 3.6))%1;local safe=phase<.48
-  g.setFont(fonts.title);g.setColor(.98,.84,.49);g.printf(d[2],20,60,w-40,'center')
-  g.setFont(fonts.body);g.setColor(.86,.90,.92);g.printf(Campaign.worlds[l].warning..'\n\n'..(d[3]=='guardian' and 'Seals cooled: ' or 'Safe crossings: ')..task.cleared..' / 3',70,130,w-140,'center')
-  g.setFont(fonts.small);g.setColor(.65,.78,.82);g.printf('Space / Enter: cross or strike · P: slower assist · Esc: retreat',30,220,w-60,'center')
+  g.setFont(fonts.title);V.color(V.teal);g.printf(d[2],20,60,w-40,'center')
+  g.setFont(fonts.body);V.color(V.ink);g.printf(Campaign.worlds[l].warning..'\n\n'..(d[3]=='guardian' and 'Seals cooled: ' or 'Safe crossings: ')..task.cleared..' / 3',70,130,w-140,'center')
+  g.setFont(fonts.small);V.color(V.muted);g.printf('Space / Enter: cross or strike · P: slower assist · Esc: retreat',30,220,w-60,'center')
   local left,width=80,w-160;g.setColor(.26,.65,.78);g.rectangle('fill',left,h/2,width*.48,30);g.setColor(.76,.29,.27);g.rectangle('fill',left+width*.48,h/2,width*.52,30)
   g.setColor(1,1,1);g.rectangle('fill',left+width*phase-3,h/2-8,6,46)
-  g.setFont(fonts.title);g.setColor(safe and .57 or 1,safe and .88 or .65,safe and .94 or .4);g.printf(safe and 'SAFE — cross / strike now' or (phase<.65 and 'WARNING — stay in shelter' or 'DANGER — stay in shelter'),0,h/2+65,w,'center')
+  g.setFont(fonts.title);g.setColor(safe and .15 or .71,safe and .49 or .26,safe and .53 or .20);g.printf(safe and 'SAFE — cross / strike now' or (phase<.65 and 'WARNING — stay in shelter' or 'DANGER — stay in shelter'),0,h/2+65,w,'center')
   local buttons={{'Cross / strike',function()self:strike()end},{task.assist and 'Pip assist: ON' or 'Pip assist: slower warnings',function()task.assist=not task.assist;task.time=0 end},{'Retreat safely',function()self:retreat()end}}
-  for i,b in ipairs(buttons)do local yy=h-155+(i-1)*46;g.setColor(.17,.29,.35);g.rectangle('fill',w/2-230,yy,460,38,5,5);g.setColor(.9,.95,.94);g.setFont(fonts.body);g.printf(b[1],w/2-230,yy+10,460,'center');self.hits[i]={x=w/2-230,y=yy,w=460,h=38,action=b[2]}end
+  for i,b in ipairs(buttons)do local yy=h-155+(i-1)*46;V.button(w/2-230,yy,460,38,i==1);g.setColor(1,1,.94);g.setFont(fonts.body);g.printf(b[1],w/2-230,yy+10,460,'center');self.hits[i]={x=w/2-230,y=yy,w=460,h=38,action=b[2]}end
  end
 end
 function A:mousepressed(x,y,button)

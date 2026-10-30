@@ -2,10 +2,10 @@
 local images={}
 love={
  image={newImageData=function(w,h)
-  assert(w==16 and h==16)
+  assert(w==32 and h==32)
   return {pixels={},setPixel=function(self,x,y,...)
-   assert(x>=0 and x<16 and y>=0 and y<16)
-   self.pixels[y*16+x]=table.concat({...},',')
+   assert(x>=0 and x<32 and y>=0 and y<32)
+   self.pixels[y*32+x]=table.concat({...},',')
   end}
  end},
  graphics={newImage=function(data) data.setFilter=function() end; images[#images+1]=data; return data end,

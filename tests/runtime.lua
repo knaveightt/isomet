@@ -29,19 +29,30 @@ function love.load()
  splashTime=1.5;capture('test-splash')
  for i=1,61 do love.update(.05)end
  assert(ready and not errorText and #rooms==60 and Characters.active)
+ capture('test-character-selection')
  love.textinput('Mira');love.keypressed('down');love.keypressed('return')
  assert(Intro.active and Characters.selected==5)
+ capture('test-location-selection')
  Intro.selected=2;Intro.choose();Intro.time=12.49;love.update(.02)
  assert(campaignStarted and journey.profile.origin=='Suburb' and roomId==1)
  adventure:close();fade=0;capture('test-maze')
  -- A passage remains closed until the real match-three rules report success.
- local side;for s,id in pairs(rooms[1].exits)do if id==8 then side=s end end;assert(side)
+ local side;for s,id in pairs(rooms[1].visualExits)do if id==8 then side=s end end;assert(side)
  adventure:enter(side,8);assert(roomId==1 and adventure.board)
  capture('test-match3');solveBoard();assert(roomId==8 and journey.unlocked['1-8'])
  adventure:close();adventure:task(8);assert(journey:items()["Potter's Mitts"])
  adventure:close();changeRoom(World.opposite[side]);assert(roomId==1)
  adventure:enter(side,8);assert(roomId==8 and not adventure.board,'Backtracking replayed board')
  adventure:close()
+ -- Explore a corridor chain through real passage boards, then capture the connected view.
+ teleport(1)
+ for _,target in ipairs({2,3,4,5})do
+  local side;for s,id in pairs(rooms[roomId].visualExits)do if id==target then side=s end end;assert(side)
+  adventure:enter(side,target);if adventure.board then solveBoard()end;adventure:close()
+  for tick=1,30 do love.update(.05)end
+  assert(journey.seen[target]and not Tabletop.walk)
+ end
+ Tabletop.zoom=.55;capture('test-tabletop-revealed');Tabletop.zoom=.68
  -- Walk the complete authored dependency chain and exercise every task type.
  for l=1,4 do
   for _,n in ipairs({1,2,3,4,5,6,7,8})do

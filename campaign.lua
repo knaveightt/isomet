@@ -56,8 +56,22 @@ function C.info(id)
  local level=math.floor((id-1)/15)+1; local slot=(id-1)%15+1
  return level,slot,slot>7 and C.doors[level][slot-7] or nil
 end
+-- View-facing ports are separate from saved topology, so older journeys migrate intact.
+local visualPorts={}
+local opposite={NE='SW',SW='NE',SE='NW',NW='SE'}
+for _,e in ipairs({{1,2,'SE'},{2,3,'SE'},{3,4,'SW'},{4,5,'NW'},{5,1,'NE'},{4,6,'SW'},{5,6,'NW'},
+ {1,8,'NW'},{2,9,'NE'},{3,10,'SE'},{1,11,'NE'},{4,12,'SE'},{5,13,'SW'},{6,14,'SW'},{14,7,'SE'},{7,15,'SE'}})do
+ visualPorts[e[1]..':'..e[2]]=e[3];visualPorts[e[2]..':'..e[1]]=opposite[e[3]]
+end
 function C.attach(rooms)
- for _,r in ipairs(rooms) do local l,s,d=C.info(r.id); r.level=l; r.slot=s; r.door=d; r.name=d and d[2] or C.worlds[l].anchors[s] end
+ for _,r in ipairs(rooms)do
+  local l,s,d=C.info(r.id);r.level=l;r.slot=s;r.door=d;r.name=d and d[2]or C.worlds[l].anchors[s]
+  r.visualExits={}
+  for side,target in pairs(r.exits)do local _,slot=C.info(target);local port=visualPorts[s..':'..slot]or side
+   assert(not r.visualExits[port],'Tabletop door ports overlap; check campaign topology')
+   r.visualExits[port]=target
+  end
+ end
  return rooms
 end
 function C.generate(random)

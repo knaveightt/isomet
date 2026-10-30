@@ -1,3 +1,5 @@
+> **Visual/tabletop update:** See [ART_DIRECTION.md](ART_DIRECTION.md). Rendering now shows connected discovered rooms with scrolling, zoom and persistent fog. The campaign rules below remain current; descriptions of the preceding art and title image are historical where superseded.
+
 # Miswander — master-plan implementation
 
 This document maps the current Lua/LÖVE campaign to the supplied **Miswander Master Plan, design draft 1.0, October 28, 2026**. The PDF is design input. Proposed prices and future content are not instructions to create a shop, configure payments, or make external purchases. The latest request specifically selects the 2D game and match-three as the initial passage minigame.
@@ -8,7 +10,7 @@ The campaign includes the four named environments, all 32 named door destination
 
 It is a **campaign prototype**, not a production adaptation of every bespoke encounter or a released mobile game. In particular, hazard and guardian rooms use a shared timing challenge, and most room discoveries and later narrative scenes are presented through readable panels rather than full animation. The existing 12-room random escape mode has been superseded by an authored campaign graph with generated room geometry. Its old saves remain untouched.
 
-The three-second splash uses the selected blue-portal/gold-lettering artwork extracted from page 1. LÖVE defers character images, room loading and campaign setup until the splash has been displayed. Title art provenance is recorded in `assets/NOTICE.md`.
+The three-second splash now uses an original bright procedural portal diorama matching the new art. LÖVE still defers character images, room loading and campaign setup until the splash has been displayed. The older PDF-derived image is retained as an unused reference in `assets/`, with provenance in `assets/NOTICE.md`.
 
 ## Source responsibilities
 
@@ -20,7 +22,9 @@ The three-second splash uses the selected blue-portal/gold-lettering artwork ext
 | `adventure.lua` | Passage challenges, inspection, task dispatch, hazards/guardians, notebook, map, hints, satchel, dialogue and finale |
 | `match3.lua` | Engine-independent board creation, legal swaps, match detection, cascades, moves, goals and dead-board recovery |
 | `savefile.lua` | Temporary writes, replacement, backup/rollback and recovery-file reading |
-| `scenery.lua` | Original environment props, recurring origin anchors, and Pip's folded-map appearance |
+| `scenery.lua` | Shaded isometric buildings, gabled roofs, planting, recurring home props and Pip |
+| `visual.lua` | Shared palette, parchment cards, tactile controls, icons, roof geometry and bright void |
+| `tabletop.lua` | Connected room placement, bridge rendering, persistent fog presentation, camera, zoom/pan and animated crossings |
 | `world.lua` | Existing room-text encoding and parsing; legacy generator retained for its existing tests |
 | `characters.lua` | Existing eight traveler appearances and name entry |
 | `intro.lua` | Location selection and animated origin-specific abduction |
@@ -120,7 +124,7 @@ The opening now follows the master plan's companion identities:
 
 The original opposite-gender sprite selection remains for human companions; City renders that sprite at child scale. The character roster has not yet gained dedicated child art. The dog communicates through actions and traces, never written dialogue. The origin changes narrative and recurring props, never required rewards or dependencies.
 
-Scenery adds a kiln/chimney, upside-down harbor boat, snowfair stall or orchard tree, alongside recognizable origin props. It is an original pixel blockout. The requested Township direction informs warmth, tactile puzzle pieces and progress readability; it is not a reproduction of Township art, nor a completed production art pass. Most anchor descriptions currently exceed the variety of rendered props. Audio motifs remain unimplemented because this LÖVE build has no audio system enabled.
+Scenery adds a kiln/chimney, upside-down harbor boat, snowfair stall or orchard tree, alongside recognizable origin props. It is an original pixel blockout. The requested Township direction informs warmth, tactile puzzle pieces and progress readability; it is not a reproduction of Township art, nor a completed production art pass. The latest art pass adds clearer original architecture and recurring illustrated props; see ART_DIRECTION.md. Audio motifs remain unimplemented because this LÖVE build has no audio system enabled.
 
 ## Failure, checkpoint and zero-heart behavior
 
