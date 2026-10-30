@@ -1,3 +1,5 @@
+> **Current version:** The game is now **Miswander**. See [MISWANDER_IMPLEMENTATION.md](MISWANDER_IMPLEMENTATION.md) for the master-plan campaign architecture and [README.md](README.md) for current controls and save files. Sections below preserve the earlier prototype design and successive extensions.
+
 # ISOMET — The Quiet Between
 
 ## Prototype design and source guide

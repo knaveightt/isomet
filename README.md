@@ -1,91 +1,111 @@
-# ISOMET — The Quiet Between
+# Miswander
 
-A small exploration game for **LÖVE 11.5** and Lua. An original, SNES-inspired pixel traveler is stranded among floating chambers. Walk through the glowing stone arches to discover twelve connected rooms and find the violet escape portal. No additional assets or libraries are needed.
+A Lua / LÖVE 11.5 exploration-and-puzzle prototype. Follow a loved one into a refuge assembled from stolen pieces of people's homes. A helpful Warden, a paper moth named Pip, and familiar objects lead you toward the truth—and a way home.
 
+This update applies to the **2D LÖVE game**. The separate `godot/` prototype and existing Windows ZIPs are unchanged and still contain their earlier ISOMET builds.
 
-## New 3D vertical slice
+## Launch
 
-The original 2D/LÖVE prototype below remains playable. A separate **Godot 4.5.2** project now provides the first 3D conversion milestone: a live Art Deco title screen, eight character variants, adapted introductions, third-person exploration across two connected chambers, a resonance-console interaction, an escape portal, checkpoints, settings, and touch/PC input.
-
-Run `./run-3d.sh` on this workspace, or import [godot/project.godot](godot/project.godot) in Godot. See the [3D guide](godot/README.md), [engine assessment](godot/docs/ENGINE_ASSESSMENT.md), [platform requirements](godot/docs/PLATFORMS.md), and [validation report](godot/docs/VALIDATION.md).
-
-A ready-to-share [Windows demo ZIP](godot/builds/windows/ISOMET-Windows-x64.zip) has now been exported. Extract it and run `ISOMET.exe`; no engine installation is required. It is unsigned and awaiting native Windows testing.
-
-This is a procedural 3D art blockout and functional slice, not the complete maze conversion or a released Android/iOS application. The device support floor remains provisional pending native-device testing.
-
-## Play
-
-On launch, choose one of eight travelers: four male and four female variants, each with a different skin tone and clothing palette. Click a portrait or use the arrow keys, type a name (up to 20 characters), then click **Continue** or press **Enter**. Backspace edits your name. Your name appears beside the current room name. Selection and name last for the current application session, including F5 restarts and Ctrl+N mazes; launching again asks you to choose anew.
-
-From this folder, run:
+From this project folder:
 
 ```sh
 love .
 ```
 
-You can also drag this project folder onto the LÖVE application.
+The Miswander artwork appears for three seconds before world and character setup. Choose a traveler and name, then City, Suburb, or Midwest. The origin-specific pixel introduction leads into the refuge. Subsequent launches offer **Continue journey** or **New journey**.
 
-- **Up / W:** northeast
-- **Right / D:** southeast
-- **Down / S:** southwest
-- **Left / A:** northwest
-- **Shift:** run
-- **F5:** restart the same maze (also reloads edited room files)
-- **O:** open the saved room folder
-- **Ctrl+N:** replace the saved maze with a new random maze immediately
-- **Escape:** quit
+The title image is the selected artwork extracted from the supplied `Miswander_Master_Plan.pdf`. All in-game scenery, characters and puzzle pieces remain procedural art. No additional libraries are required.
 
-Walk into an arch to change rooms. Walk into the violet portal to escape. Pillars block movement; the central paths stay open. Diagonal key combinations work too. There is no combat in this first version.
+## Explore and unseal passages
 
-## Introduction
+Walk into an arch to try its passage. **The first crossing requires five match-three lines in eighteen neighboring swaps.** Tap two adjacent pieces, or use arrows and Space/Enter to select them. Match three or more horizontally or vertically. Cascades count, and dead boards reshuffle for free. A neighboring swap uses one attempt even if it makes no line; the pieces then return to their original positions. Selecting a distant piece simply changes selection.
 
-After character creation, choose **City**, **Suburb**, or **Midwest** using the mouse or arrow keys, then click **Begin your story** or press Enter. A roughly 12.5-second pixel-art scene shows your character, a randomly selected loved one of the opposite gender, and a dog.
+A successful passage unlock is permanent in both directions. Backtracking never requires replaying its board. Marked task rooms have their own inspect action: discover tools, use them at mechanisms, read companion traces, or face a warned timing challenge. Some mechanisms have an additional match-three task. Missing items cost nothing, and retreat is free.
 
-- **City:** a bedroom at night; the television pulls your loved one and dog inside.
-- **Suburb:** dinner in a dining room; a mirror becomes the doorway.
-- **Midwest:** a ranch surrounded by corn; a puddle opens into the void.
+Arches show their destinations or illustrated marking names at the bottom of the screen; gold floor markers indicate item-gated routes. Use **Inspect** inside a room, and **Pip** for the next required clue. The map contains only visited locations and inspected passage information.
 
-Your character reacts and follows them, then the scene fades into the first maze room. Movement and maze shortcuts are paused during the introduction; Escape still quits. F5 and Ctrl+N restart gameplay directly without replaying the introduction. Location and companion choices last only for this launch and do not change saved room data.
+## Controls
 
-## Persistent, editable rooms
+| Action | Keyboard | Mouse / touch |
+| --- | --- | --- |
+| Move NE / SE / SW / NW | Up / Right / Down / Left, or W / D / S / A | Hold a direction on the bottom-left pad |
+| Run | Shift | — |
+| Inspect current room | E | Inspect button |
+| Satchel / notebook / map / Pip hint | I / J / M / P | Bottom toolbar |
+| Toggle/use lantern | L | Satchel → Supplies |
+| Pause | Escape | — |
+| Reload saved journey | F5 | — |
+| Start new traveler (asks first) | Ctrl+N | New journey at launch |
+| Open saved files | O | — |
+| Match-three selection | Arrows + Space/Enter | Tap two neighboring pieces |
+| Hazard/guardian crossing or strike | Space/Enter | Cross / strike button |
+| Slower timing assist | P during a timing task | Pip assist button |
+| Read long panels | Wheel or Page Up/Down | Wheel; swipe scrolling supported on panels |
+| Select a panel action | Up/Down + Enter | Tap the action |
+| Retreat from an unfinished challenge | Escape | Return safely / retreat button |
 
-The first launch generates the maze and writes it to LÖVE's save directory. Subsequent launches read those files instead of generating new rooms. The layout persists; the player starts in room 1 each session.
+Touch buttons and the movement pad are a desktop-tested preparation for mobile. Physical Android/iOS testing, platform packaging, native lifecycle behavior, portrait layouts and full mobile accessibility remain future work.
 
-Press **O** to open the save directory. On a typical Linux installation it is `~/.local/share/love/isomet-void/`; on Windows it is `%APPDATA%/LOVE/isomet-void/`; on macOS it is `~/Library/Application Support/LOVE/isomet-void/`.
+## The campaign
 
-`world.txt` contains the number of rooms. `rooms/1.room`, `rooms/2.room`, etc. contain plain text:
+The authored campaign follows the master plan's four environments and 32 named doors, with a branching corridor ring in each environment, deterministic quest rewards, optional side rooms and shortcuts, and an origin-specific rescue ending. Room dimensions and sparse pillars are generated once; the dependency graph is authored to stay solvable. There are seven corridor spaces and eight interiors per environment (60 rooms in the room files). The game does not display the total environment count.
+
+The satchel has Quest, Supplies, Materials, Memories and Wardrobe compartments. Quest storage is unlimited. Tools and keys are retained; installed tools remain recorded. The notebook preserves evidence, warnings, companion traces and transition transcripts. Early inspections never grant a later clue prematurely.
+
+Hazards and guardians currently use **three safe-window timing actions**, with explicit safe/warning/danger feedback and a slower assist. They are functional stand-ins for the plan's distinct vent lanes, water routes, sliding rooms and guardian encounters. The rescue finale uses four saved interactions and an origin-specific written reunion; it is not yet a fully animated finale.
+
+## Hearts, light and optional crafting
+
+You have five hearts. A failed scored board or fatal timing action loses exactly one heart and returns you to the current environment's entrance. Quest rewards, solved tasks, discoveries and unlocked passages remain. At zero hearts, progress is saved and dangerous rooms/challenges wait; notebook and inventory stay available. A free heart returns every twenty minutes, including time away from the app. There are no payments or refill purchases in this build.
+
+Power Cells provide five minutes of optional bright lantern light. The timer pauses while reading, choosing menus, solving puzzles or watching scenes. Optional side rooms stay dimly navigable without a cell. One cell is supplied initially; free recharge grants another every twenty minutes. Practice at a completed matching mechanism alternates Glow Shards and Copper Scrap. Optional room completion grants Thread once.
+
+- Craft one Power Cell: **2 Glow Shards + 1 Copper Scrap**.
+- Expand optional-material storage by ten: **3 Copper Scrap + 2 Thread**.
+- Initial material capacity: **30**. Overflow is retained in an unlimited claim tray and can be used directly in recipes.
+
+Crafting, storage, lantern cells and practice are optional. The rescue never requires a purchase or crafted item. Cosmetic purchases, word-game mode, paid packs and store integrations from the plan remain proposals.
+
+## Saves and editable rooms
+
+Press **O** to open LÖVE's existing `isomet-void` save directory. Keeping the identity preserves the earlier prototype's data. Typical Linux path: `~/.local/share/love/isomet-void/`.
+
+- `miswander-world.txt`: campaign room count, currently 60.
+- `miswander-rooms/1.room` through `60.room`: editable geometry and reciprocal exits.
+- `miswander-journey.txt`: versioned plain-text profile, checkpoint, hearts, quest flags, journal, passage unlocks and optional supplies.
+- `.tmp` / `.bak`: temporary write and recovery files, when needed.
+
+Earlier `world.txt` and `rooms/` files are preserved; they are not migrated into the authored campaign. Continue restores the Miswander checkpoint. Saving occurs after meaningful changes, every ten seconds of exploration, on pause and on normal quit. An unfinished board resets after closing; it does not consume a heart merely for closing. New journey replaces progress only after the new introduction finishes.
+
+Room geometry uses the existing format:
 
 ```text
-# Comments begin with #
-name = A Quiet Observatory
-size = 8 9
+name = Chimney Court
+size = 9 8
 portal = false
-exit = NE 2
-exit = SE 3
+exit = NE 8
+exit = SE 2
 pillar = 2.5 2.5
-pillar = 5.5 6.5
 ```
 
-`size` specifies width and height in floor tiles (5–16 each). Floor coordinates range from zero to the room size. Half-tile coordinates put pillars at tile centers. Keep pillars away from entrances and leave paths between all exits and the center.
+Dimensions must be 5–16; pillars must be inside the floor and should leave paths clear. Connections must be reciprocal on opposite sides. `campaign.lua` assigns stable IDs, canonical names, four local corridor graphs and task metadata. Change lore, rewards, dependencies and campaign topology there. Edited room files must retain local connectivity and the final room's portal. Back up both room files and journey data before editing. Do not renumber rooms during a saved journey.
 
-Each room may have at most one exit per side. An `exit` contains a direction and destination room number. Arches are centered on the corresponding edges. Connections must be reciprocal: if room 1 has `exit = NE 2`, room 2 must have `exit = SW 1`. The other opposite pair is NW / SE. Use exactly one `portal = true` in the world; the escape appears in that room's center. All rooms must connect to room 1. The loader checks these rules and displays errors without overwriting your files. Back up custom rooms before pressing Ctrl+N.
+## Source and design
 
-Edit files while the game is closed, or press F5 after saving changes. Names and dimensions can be freely changed. To add a room, create the next numbered file, update `world.txt`, and add reciprocal exits. Use consecutive room numbers starting at 1.
+See [MISWANDER_IMPLEMENTATION.md](MISWANDER_IMPLEMENTATION.md) for plan coverage, source responsibilities, deliberate prototype substitutions and remaining work. [DESIGN.md](DESIGN.md) preserves the earlier source guide and links to the current campaign architecture. [docs/LEGACY_README.md](docs/LEGACY_README.md) archives the preceding prototype instructions.
 
-## Project
+## Verification
 
-See [DESIGN.md](DESIGN.md) for a complete source walkthrough, algorithms, data format, programming principles, and current limitations.
+```sh
+lua tests/world_test.lua
+lua tests/characters_test.lua
+lua tests/intro_test.lua
+lua tests/miswander_test.lua
+lua tests/savefile_test.lua
+luajit tests/miswander_test.lua
+python3 tests/run_love_tests.py
+```
 
-- `main.lua`: movement, room transitions, isometric rendering, void animation, interface
-- `characters.lua`: eight pixel portraits, selection screen, and character-name input
-- `intro.lua`: location selection, pixel-art environments, and timed introduction
-- `pixel_font.lua`: crisp 5×7 bitmap lettering for cutscene captions
-- `world.lua`: maze generation, plain-text serialization, validation
-- `conf.lua`: window and LÖVE configuration
-- `tests/world_test.lua`: generation and persistence checks
+The campaign tests cover 200 seeded layouts and boards, dependency ordering, serialization, unique rewards, lives, both finale prerequisites, free recharge, crafting and overflow. The isolated LÖVE test uses real callbacks and puzzle rules to exercise setup, passage unlocking, all 32 tasks, rescue, failure retention, resume and minimum-size rendering. It saves preview screenshots under the temporary directory printed at completion and leaves normal player saves untouched.
 
-Run the data checks with `lua tests/world_test.lua` or `luajit tests/world_test.lua`. They verify 200 seeded worlds, connected and reciprocal exits, a unique escape, clear central corridors, and exact room-file round trips. `ISOMET_SMOKE=1 love .` runs briefly and saves a screenshot in the save directory. For isolated testing on Linux, use `XDG_DATA_HOME=/tmp/isomet-test ISOMET_SMOKE=1 love .`.
-
-Character selection checks: `lua tests/characters_test.lua` (Lua 5.4). These cover unique sprites, keyboard/mouse selection, UTF-8 backspace, name length, and confirmation.
-
-Introduction state checks: `lua tests/intro_test.lua`. These cover opposite-gender companions, keyboard/mouse choices, timeline completion, and one-time handoff.
+For a brief startup-only check: `XDG_DATA_HOME=/tmp/miswander-smoke ISOMET_SMOKE=1 love .`.

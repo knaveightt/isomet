@@ -49,6 +49,10 @@ local function environment(location,t)
    rect(x,80-h,8,h,.10,.13,.24); rect(x+2,84-h,2,3,.72,.59,.35)
   end
   rect(55,21,2,59,.39,.39,.50)
+  -- Intercom and radiator: apartment identity beyond the TV.
+  rect(112,31,9,16,.70,.66,.57);rect(114,34,5,3,.19,.23,.29)
+  for x=153,182,5 do rect(x,79,3,25,.51,.48,.46)end
+  rect(151,84,35,2,.66,.61,.54)
   -- Bed, headboard, pillows, and blanket establish a bedroom.
   rect(28,94,110,24,.24,.15,.24); rect(28,112,110,34,.35,.31,.52)
   rect(34,104,34,13,.80,.76,.73); rect(75,104,34,13,.80,.76,.73)
@@ -62,6 +66,10 @@ local function environment(location,t)
   rect(0,0,320,180,.38,.27,.31); rect(0,110,320,70,.31,.22,.22)
   for x=0,319,16 do rect(x,0,1,110,.48,.35,.36) end
   rect(0,103,320,5,.68,.49,.34)
+  -- Sliding patio door overlooks the fenced yard.
+  rect(80,22,39,66,.65,.58,.48);rect(83,25,33,60,.18,.29,.31)
+  rect(99,25,2,60,.65,.58,.48)
+  for x=84,113,6 do rect(x,61,2,23,.52,.43,.32)end
   rect(23,21,48,54,.21,.14,.23); rect(28,26,38,44,.18,.24,.36)
   rect(46,26,2,44,.66,.49,.35); rect(28,47,38,2,.66,.49,.35)
   -- Dining furniture and food.
@@ -127,8 +135,14 @@ function I.renderScene()
  if loc==1 then px,py,nx,ny,dx,dy=63,123,105,123,163,148
  elseif loc==3 then px,py,nx,ny,dx,dy=107,151,157,146,194,156 end
  local np=progress(t,5,7); local dp=progress(t,6,8)
- if np<1 then person(I.characters.images[I.companion],nx+(tx-nx)*np,ny+(ty-ny)*np,1.6*(1-np),1-np*.6) end
- if dp<1 then dog(dx+(tx-dx)*dp,dy+(ty-dy)*dp,1.4*(1-dp),1-dp*.6) end
+ if loc~=3 and np<1 then person(I.characters.images[I.companion],nx+(tx-nx)*np,ny+(ty-ny)*np,(loc==1 and 1.05 or 1.6)*(1-np),1-np*.6) end
+ if loc==3 and dp<1 then dog(dx+(tx-dx)*dp,dy+(ty-dy)*dp,1.4*(1-dp),1-dp*.6) end
+ -- A small shared gesture establishes the relationship before the theft.
+ if t>1.3 and t<2.8 then
+  if loc==1 then rect(px+9,py-17,9,3,.94,.72,.52);rect(nx-13,ny-17,8,3,.94,.72,.52)
+  elseif loc==2 then rect(px+10,py-14,4,3,.94,.72,.52);rect(nx-14,ny-14,4,3,.94,.72,.52)
+  else local ball=progress(t,1.3,2.8);rect(px+20+(dx-px-30)*ball,py-5-math.sin(ball*math.pi)*13,4,4,.93,.66,.30)end
+ end
  local chase=progress(t,9,11)
  local jump=t>=6.8 and t<9 and math.abs(math.sin((t-6.8)*9))*7 or 0
  if chase<1 then person(I.characters.images[I.characters.selected],px+(tx-px)*chase,py+(ty-py)*chase-jump,1.6*(1-chase),1-chase*.6) end
@@ -139,10 +153,10 @@ function I.renderScene()
  -- Console-style caption strip and cinematic letterboxing.
  rect(0,0,320,12,.025,.03,.07); rect(0,163,320,17,.025,.03,.07)
  g.setFont(I.small); g.setColor(.96,.96,.88)
- local captions={'A quiet night. The television murmurs.','Dinner together. A familiar reflection.','Home, among the corn. Rain has just passed.'}
+ local captions={'TV NIGHT. YOUR CHILD RETURNS A HIGH FIVE.','DINNER TOGETHER. THE SAME OLD JOKE.','FETCH ON THE RANCH. YOUR DOG WAGS.'}
  local caption=captions[loc]
  if t>=3 and t<5 then caption='Something on the other side is waking.'
- elseif t>=5 and t<8 then caption='The void takes those you love.'
+ elseif t>=5 and t<8 then caption=loc==1 and 'THE VOID TAKES YOUR CHILD.' or (loc==2 and 'THE VOID TAKES YOUR PARTNER.' or 'THE VOID TAKES YOUR DOG.')
  elseif t>=8 and t<9 then caption='No! Wait!'
  elseif t>=9 then caption='You follow. Whatever waits beyond.' end
  g.printf(caption:upper(),8,167,304,'center')
