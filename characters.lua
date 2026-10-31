@@ -1,52 +1,13 @@
--- Original shaded 32 x 32 RPG sprites, built from two readable silhouettes.
+-- Eight illustrated traveler variants. Profile indices and input behavior are stable.
 local V=require("visual")
 local utf8=require('utf8')
 local C={selected=1,name='',active=true,images={}}
-local male={
- '      HHHH      ','     HHHHHH     ','    HHHHHHHH    ','    HHHSSSHH    ',
- '    HHSESSH    ','     SSSSS      ','      SSS       ','    CCCCCCC     ',
- '   CCCGCGCCC    ','   SCCGGGCCS    ','   SSCCGCCSS    ','     CCCCC      ',
- '     BBBBB      ','     BB BB      ','    DDD DDD     ','    DDD DDD     '}
-local female={
- '     HHHHHH     ','    HHHHHHHH    ','    HHHHHHHH    ','    HHHSSSHH    ',
- '    HHSESSHH    ','    HSSSSSHH    ','    HHSSSHHH    ','    CCCCCCC     ',
- '   CCCGCGCCC    ','   SCCGGGCCS    ','   SSCCGCCSS    ','     CCCCC      ',
- '    CCCCCCC     ','    CCCBCCC     ','     DD DD      ','    DDD DDD     '}
-local variants={
- {label='Tide',skin={.94,.72,.52,1},cloth={.19,.67,.78,1},hair={.23,.16,.29,1},trim={.97,.79,.40,1}},
- {label='Ember',skin={.76,.49,.32,1},cloth={.92,.36,.26,1},hair={.16,.11,.14,1},trim={1,.77,.42,1}},
- {label='Grove',skin={.46,.28,.20,1},cloth={.30,.70,.42,1},hair={.12,.09,.14,1},trim={.79,.88,.61,1}},
- {label='Aster',skin={.29,.17,.14,1},cloth={.67,.43,.86,1},hair={.78,.73,.65,1},trim={.85,.88,1,1}}
-}
+local Art=require('cartoon')
+local variants={{label='Tide'},{label='Ember'},{label='Grove'},{label='Aster'}}
 function C.load()
- for i=1,8 do
-  local v=variants[(i-1)%4+1]
-  local colors={H=v.hair,S=v.skin,E={.10,.12,.19,1},C=v.cloth,G=v.trim,B={.27,.30,.47,1},D={.17,.15,.25,1}}
-  local data=love.image.newImageData(32,32)
-  local shape=i<=4 and male or female
-  local occupied={}
-  for y,row in ipairs(shape)do for x=1,16 do if colors[row:sub(x,x)]then
-   for yy=0,1 do for xx=0,1 do occupied[(y*2-2+yy)*32+x*2-2+xx]=true end end
-  end end end
-  -- One-pixel colored outline gives every silhouette a clear edge.
-  for index in pairs(occupied)do local x,y=index%32,math.floor(index/32)
-   for _,d in ipairs({{-1,0},{1,0},{0,-1},{0,1}})do local xx,yy=x+d[1],y+d[2]
-    if xx>=0 and xx<32 and yy>=0 and yy<32 and not occupied[yy*32+xx]then data:setPixel(xx,yy,.19,.23,.30,1)end
-   end
-  end
-  for y,row in ipairs(shape)do for x=1,16 do local symbol=row:sub(x,x);local c=colors[symbol]
-   if c then for yy=0,1 do for xx=0,1 do local light=xx==0 and yy==0 and 1.18 or (xx==1 and yy==1 and .86 or 1)
-    data:setPixel(x*2-2+xx,y*2-2+yy,math.min(1,c[1]*light),math.min(1,c[2]*light),math.min(1,c[3]*light),1)
-   end end end
-  end end
-  -- Fine hair, face, embroidered belt and boot highlights.
-  for x=12,18 do data:setPixel(x,3,math.min(1,v.hair[1]+.18),math.min(1,v.hair[2]+.14),math.min(1,v.hair[3]+.12),1)end
-  data:setPixel(14,9,1,.94,.82,1);data:setPixel(14,10,.17,.22,.29,1)
-  for x=11,20 do data:setPixel(x,23,v.trim[1],v.trim[2],v.trim[3],1)end
-  data:setPixel(15,23,1,1,.82,1);data:setPixel(9,28,.58,.47,.37,1);data:setPixel(21,28,.58,.47,.37,1)
-  C.images[i]=love.graphics.newImage(data); C.images[i]:setFilter('nearest','nearest')
- end
- love.keyboard.setTextInput(true); love.keyboard.setKeyRepeat(true)
+ Art.load('travelers')
+ for i=1,8 do C.images[i]={index=i}end
+ love.keyboard.setTextInput(true);love.keyboard.setKeyRepeat(true)
 end
 function C.displayName() return C.name:match('^%s*(.-)%s*$') end
 function C.confirm()
@@ -90,7 +51,7 @@ function C.draw(fonts,time)
   local x=left+((i-1)%4)*170;local y=top+math.floor((i-1)/4)*142
   V.card(x,y,154,128,i==C.selected)
   V.color({.77,.89,.72});g.ellipse('fill',x+77,y+77,28,7)
-  g.setColor(1,1,1);g.draw(C.images[i],x+45,y+12,0,2,2)
+  Art.traveler(C.images[i],x+77,y+84,77,82)
   g.setFont(fonts.body);V.color(V.ink);g.printf((i<=4 and 'Male' or 'Female')..' · '..variants[(i-1)%4+1].label,x,y+91,154,'center')
  end
  g.setFont(fonts.body);V.color(V.ink);g.printf('Character name',0,top+290,w,'center')

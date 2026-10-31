@@ -4,7 +4,7 @@ A Lua / LÖVE 11.5 exploration-and-puzzle prototype. Follow a loved one into a r
 
 This update applies to the **2D LÖVE game**. The separate `godot/` prototype and existing Windows ZIPs are unchanged and still contain their earlier ISOMET builds.
 
-![Connected tabletop preview](docs/images/miswander-tabletop.png)
+![Illustrated cartoon tabletop preview](docs/images/miswander-illustrated-tabletop.png)
 
 ## Launch
 
@@ -16,7 +16,7 @@ love .
 
 The Miswander artwork appears for three seconds before world and character setup. Choose a traveler and name, then City, Suburb, or Midwest. The origin-specific pixel introduction leads into the refuge. Subsequent launches offer **Continue journey** or **New journey**.
 
-The splash, scenery, 32×32 characters, puzzle pieces and interface now share an original bright isometric/pixel-art direction, with warm parchment panels, turquoise controls, colorful roofs and planted courtyards. The earlier PDF title extraction remains archived in `assets/` and is no longer used by the game. No additional libraries are required.
+The rooms, buildings, greenery, guardians and eight travelers now use high-resolution illustrated cartoon artwork with soft shading, rounded forms and saturated colors. Textured plank bridges have rope rails and posts. The splash uses the same artwork; parchment menus and puzzle controls retain their bright theme. The earlier PDF title extraction remains archived in `assets/` and is no longer used by the game. No additional game libraries are required. Generation provenance and prompts are in [assets/cartoon/README.md](assets/cartoon/README.md).
 
 ## Explore the tabletop maze
 
@@ -118,8 +118,11 @@ lua tests/miswander_test.lua
 lua tests/savefile_test.lua
 luajit tests/miswander_test.lua
 lua tests/tabletop_test.lua
+python3 tests/assets_test.py
 python3 tests/run_love_tests.py
 ```
+
+The optional atlas check uses Pillow (`python3 -m pip install Pillow` if absent); no Python package is needed to play the game.
 
 The campaign tests cover 200 seeded layouts and boards, dependency ordering, serialization, unique rewards, lives, both finale prerequisites, free recharge, crafting and overflow. The isolated LÖVE test uses real callbacks and puzzle rules to exercise setup, passage unlocking, all 32 tasks, rescue, failure retention, resume and minimum-size rendering. It saves preview screenshots under the temporary directory printed at completion and leaves normal player saves untouched.
 

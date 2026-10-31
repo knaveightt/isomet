@@ -55,6 +55,7 @@ function love.load()
  Tabletop.zoom=.55;capture('test-tabletop-revealed');Tabletop.zoom=.68
  -- Walk the complete authored dependency chain and exercise every task type.
  for l=1,4 do
+  teleport(Campaign.id(l,1));adventure:close();capture('test-biome-'..l)
   for _,n in ipairs({1,2,3,4,5,6,7,8})do
    local id=Campaign.id(l,7+n);teleport(id);adventure:close()
    if not journey.solved[id]then

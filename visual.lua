@@ -74,19 +74,25 @@ function V.roof(project,x,y,w,d,z,height,c)
 end
 function V.title(w,h,t,font)
  V.background(w,h,t)
- local g=love.graphics;local s=math.min(w/800,h/540);g.push();g.translate(w/2,h/2-35);g.scale(s,s)
- -- A welcoming floating threshold, painted entirely with original pixel geometry.
- local function p(x,y,z)return (x-y)*36,(x+y)*18-(z or 0)end
- V.box(p,-3,-3,6,6,-26,26,{.57,.76,.48})
- V.box(p,-2.6,-2.6,5.2,5.2,0,6,{.96,.86,.64})
- for _,x in ipairs({-1.65,1.05})do V.box(p,x,-.45,.60,.60,6,125,{.96,.85,.62})end
- V.box(p,-1.65,-.45,3.3,.60,131,18,{1,.89,.65})
- for i=1,6 do local q=i/6;g.setColor(.29,.60+q*.3,.95,.35);g.ellipse('fill',0,-55,35-i*3,61-i*5)end
- g.setColor(.94,1,.94);g.setLineWidth(3);g.ellipse('line',0,-55,23+math.sin(t)*2,49);g.setLineWidth(1)
- for _,x in ipairs({-110,110})do g.setColor(.30,.52,.31);g.rectangle('fill',x-4,-12,8,40);g.setColor(.48,.72,.35);g.circle('fill',x,-22,27);g.setColor(.68,.84,.42);g.circle('fill',x-6,-31,19);g.setColor(.97,.58,.30);g.rectangle('fill',x+9,-29,6,7)end
- g.pop()
- g.setFont(font);local title='M I S W A N D E R';local ts=math.min(2.1,(w-80)/font:getWidth(title))
- local yy=h*.70;g.setColor(.30,.30,.22);g.print(title,(w-font:getWidth(title)*ts)/2,yy+3,0,ts,ts)
- g.setColor(1,.92,.57);g.print(title,(w-font:getWidth(title)*ts)/2,yy,0,ts,ts)
+ local Art=require('cartoon');local g=love.graphics;local s=math.min(w/900,h/650)
+ local cx,cy=w/2,h*.42
+ Art.drawRect('terrain',4,cx-270*s,cy-72*s,540*s,330*s)
+ Art.draw('scenery',1,cx-145*s,cy+70*s,165*s,190*s,.5,1)
+ Art.draw('scenery',5,cx+175*s,cy+120*s,128*s,168*s,.5,1)
+ -- A rounded magical threshold sits inside the same illustrated world as the maze.
+ g.push();g.translate(cx+12*s,cy+52*s);g.scale(s,s)
+ local arch={-52,39,-52,-47}
+ for i=0,20 do local q=i/20;arch[#arch+1]=-52+104*q;arch[#arch+1]=-47-math.sin(q*math.pi)*49 end
+ arch[#arch+1]=52;arch[#arch+1]=39
+ V.color({.59,.41,.26});g.setLineWidth(27);g.line(arch)
+ V.color({.99,.84,.57});g.setLineWidth(21);g.line(arch)
+ V.color({1,.96,.79});g.setLineWidth(5);g.line(arch)
+ for i=7,1,-1 do local q=i/7;g.setColor(.21,.57+q*.30,1,.19);g.ellipse('fill',0,-21,39*q,63*q)end
+ g.setColor(.91,1,.97);g.setLineWidth(3);g.ellipse('line',0,-21,28+math.sin(t)*2,52)
+ for i=1,14 do local a=i*2.4+t*.8;g.setColor(1,.95,.62,.7);g.circle('fill',math.cos(a)*39,-21+math.sin(a)*60,1.8)end
+ g.setLineWidth(1);g.pop()
+ g.setFont(font);local title='M I S W A N D E R';local ts=math.min(2.1,(w-80)/font:getWidth(title));local yy=h*.77
+ g.setColor(.28,.32,.24);g.print(title,(w-font:getWidth(title)*ts)/2,yy+3,0,ts,ts)
+ g.setColor(1,.94,.67);g.print(title,(w-font:getWidth(title)*ts)/2,yy,0,ts,ts)
 end
 return V

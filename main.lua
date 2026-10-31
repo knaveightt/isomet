@@ -92,7 +92,7 @@ local function setup()
   start(false)
 end
 function love.load()
-  love.graphics.setDefaultFilter('nearest','nearest')
+  love.graphics.setDefaultFilter('linear','linear')
   fonts.title=love.graphics.newFont(26);fonts.body=love.graphics.newFont(16);fonts.small=love.graphics.newFont(12)
   love.math.setRandomSeed(os.time())
   -- The startup diorama shares the same original isometric art as the game.

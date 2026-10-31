@@ -1,21 +1,23 @@
 # Miswander — bright tabletop art and exploration
 
-## Visual direction
+## Current illustrated cartoon direction
 
-The new presentation uses a warm, readable mobile-adventure aesthetic within Miswander's own pixel-art identity. Township is the requested reference for a welcoming miniature-world feeling, colorful buildings, clear objects and tactile controls. The implementation does not use Township images, models, interface assets or recordings.
+The current world uses high-resolution RGBA illustrations, replacing the earlier minimal procedural/pixel room assets. Rounded roofs, soft baked lighting, textured stone and wood, lush foliage and larger expressive travelers move Miswander toward the cheerful mobile-farming/adventure visual genre requested by the user. Township, Hay Day and Farm City inform the reference direction; no images from those games are imported.
 
-All active graphics are drawn from original project code: 32×32 outlined travelers, gabled miniature buildings, decorated paving, planters, fruit trees, distinct miniature guardians, reward chests, cream-and-gold arches, a paper moth, sparkling puzzle pieces, parchment cards, tool icons, and the startup portal diorama. Nearest filtering keeps the character and cinematic pixel art crisp. Larger interface typography stays readable at the 800×600 minimum size.
+The three atlases were generated with built-in imagegen for this project. Exact prompts and source files are recorded in [assets/cartoon/README.md](assets/cartoon/README.md). `cartoon_atlas.lua` defines source rectangles, and `cartoon.lua` caches textures and quads. The PNG originals are unmodified. Smooth linear/mipmap filtering replaces nearest-neighbor filtering for the illustrated sprites; window MSAA is enabled for native geometry.
 
-| Environment | Palette and architecture |
+| Environment | Illustrated setting |
 | --- | --- |
-| Crooked Kiln | Apricot stone, warm plaster, terracotta roof tiles, pottery and smoking chimneys |
-| Upside-Down Harbor | Turquoise paving, cream waterfront cottages, boardwalks, teal roofs and misplaced sails |
-| Midnight Snowfair | Pale lavender and snow, plum roofs, striped stalls and colored lanterns |
-| Buried Orchard | Leaf-green paving, red-roofed barns, apple crates, planted edges and trees |
+| Crooked Kiln | Warm sandstone paving, terracotta edges, a rounded pottery workshop and detailed ceramic pots |
+| Upside-Down Harbor | Aqua cobbles, water around the platform, turquoise cottage, ropes and a little sail |
+| Midnight Snowfair | Lavender paving, snow-capped edging, a purple chalet, striped awning and lanterns |
+| Buried Orchard | Lush grass, stepping stones, rounded soil/roots, an orchard barn and apple crates |
 
-The void is a bright, drifting cloud sea with distant anonymous floating fragments. It remains an impossible place assembled from familiar objects, rather than a normal town. Dark optional rooms still have their lantern mechanic. The three introductory scenes were redrawn with warm interiors, parquet, plants, brighter clothing and a greener cornfield while preserving their established story timing. The initial city scene still takes place at night, visible through the window.
+Trees, planters, benches, treasure chests and four guardian designs use the same illustrated style. The eight traveler indices remain stable, preserving saved character choices and varied skin tones/clothing. Players render taller, turn toward horizontal travel direction, and have a gentle walking bob. These are illustrated standing sprites with movement effects, not a full multi-directional skeletal animation system.
 
-The old PDF-derived title image remains archived for provenance but is not loaded. The new three-second title is a procedural isometric portal garden using the shared palette.
+The bridges are native geometry rather than image strips: individual beveled planks, grain accents, shaded thickness, round-capped posts and sagging rope rails follow arbitrary connection directions. Arches have rounded stone curves, soft highlights and lock medallions. Corner scenery retains the established solid footprints and open central navigation cross.
+
+The startup scene reuses illustrated terrain, a workshop and a tree around the portal. Introductory human characters use the new traveler art; the pre-existing low-resolution cinematic backgrounds, dog and caption system remain separate and are not presented as newly illustrated scenes.
 
 ## Connected tabletop
 
@@ -30,7 +32,7 @@ screenY = cameraOriginY + (worldX + worldY) × 15 × zoom - elevation × zoom
 
 All room footprints are non-overlapping. Separate environments still connect through their established story transitions; the complete four-environment campaign is not flattened into one giant map.
 
-Floors and bridges draw first. Buildings, trees, pillars, arches, Pip and the player share one world-depth ordering, based on world X+Y. Visible roofs have two shaded facets and tile lines. The player has a final foreground locator ring and arrow so it remains possible to find them behind a doorway or roof. Corner scenery is solid, with central crossing routes and all four exit approaches preserved.
+Floors and bridges draw first. Buildings, trees, pillars, arches, Pip and the player share one world-depth ordering, based on world X+Y. Roofs, windows, greenery and paving now have illustrated surface detail and baked shading. The player has a final foreground locator ring and arrow so it remains possible to find them behind a doorway or roof. Corner scenery is solid, with central crossing routes and all four exit approaches preserved.
 
 Bridge entrances use `visualExits`, attached by `campaign.lua`. These are view-facing ports for the authored tabletop and are reciprocal. Original serialized exits are retained as topology data. This lets older journey files, room IDs, rewards and unordered passage-unlock keys keep working. Custom topology edits may also need changes to the view-facing port map and presentation layout.
 
@@ -52,16 +54,18 @@ Automatic task dialogue no longer covers a newly revealed room. Instead, a short
 
 ## Camera controls
 
-Default zoom is 0.68, with a range from 0.38 to 1.25. The view follows the player smoothly. Mouse wheel or +/− changes zoom. Holding the right mouse button and dragging pans the tabletop. F clears the pan offset and returns to following the player. On touch, two-finger drag and pinch are wired for panning and zooming; native-device validation is still required. Puzzle/menu input takes priority and does not move the tabletop camera.
+Default zoom remains 0.68, with a range from 0.38 to 1.25. The view follows the player smoothly. Mouse wheel or +/− changes zoom. Holding the right mouse button and dragging pans the tabletop. F clears the pan offset and returns to following the player. On touch, two-finger drag and pinch are wired for panning and zooming; native-device validation is still required. Puzzle/menu input takes priority and does not move the tabletop camera.
 
 Camera offsets and zoom are session preferences, not stored journey fields. On resume or after a death/world transition, the camera recenters on the appropriate checkpoint. Previously discovered rooms still remain revealed. Optional discovered shortcuts also animate a move between their endpoints.
 
 ## Source changes
 
 - `visual.lua`: shared colors, cards, buttons, pixel icons, clouds, isometric boxes/roof facets and title diorama.
-- `scenery.lua`: four architectural themes, trees, pottery, crates, origin anchors, Pip and solid corner footprints.
+- `scenery.lua`: illustrated building/guardian, tree, bench, planter and chest placement, Pip and solid corner footprints.
+- `cartoon.lua` / `cartoon_atlas.lua`: cached illustrated sprites and source rectangles.
+- `bridge.lua`: detailed plank decks, posts and rope handrails.
 - `tabletop.lua`: static placement, view ports, bridges, fog visibility/reveal animation, common depth ordering, camera and crossing movement.
-- `characters.lua`: richer 32×32 sprites, highlights/outlines, stronger outfit colors, warm portrait selection cards.
+- `characters.lua`: eight illustrated traveler choices, with unchanged name entry and profile indices.
 - `intro.lua`: redesigned scene environments and location cards; normalized sprite drawing retains existing cinematic character proportions.
 - `adventure.lua`: unified parchment presentation, tactile buttons, six faceted fantasy puzzle-piece designs, reveal toasts and view-facing map directions.
 - `main.lua`: tabletop integration, zoom/pan/follow/touch controls, new icon toolbar and removal of the old single-room renderer.
@@ -72,4 +76,6 @@ Camera offsets and zoom are session preferences, not stored journey fields. On r
 
 The real LÖVE integration test now clears several corridor challenges, waits for the crossing animations and captures the expanding connected tabletop. It also captures the redesigned character/location screens, title, puzzle board, three introductions, inventory, timing challenge, ending and minimum-size view. Existing campaign, serialization, life, crafting and rescue checks remain in place.
 
-This is a broad original art/presentation overhaul, not a claim to finished Township-scale production assets or mobile certification. The present architecture uses a compact set of themed building archetypes; unique art for each named interior, more environmental animation, high-resolution mobile layout adaptation and bespoke guardian visuals remain natural next art tasks.
+This is a broad original art/presentation overhaul, not a claim to finished Township-scale production assets or mobile certification. The present architecture uses a compact set of illustrated building archetypes; unique art for each named interior, more environmental animation, high-resolution mobile layout adaptation and bespoke guardian visuals remain natural next art tasks.
+
+`tests/assets_test.py` additionally checks the three RGBA atlases, all 24 distinct source rectangles, bounds and transparency. The real LÖVE runner captures all four illustrated environments, and the campaign/save regression suite remains unchanged.

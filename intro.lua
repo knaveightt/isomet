@@ -1,5 +1,6 @@
 -- A small, explicit cinematic state machine; no room data is changed here.
 local V=require('visual')
+local Cartoon=require('cartoon')
 local I={active=false,phase='location',selected=1,time=0}
 local locations={'City','Suburb','Midwest'}
 local function clamp(v) return math.max(0,math.min(1,v)) end
@@ -119,7 +120,7 @@ local function dog(x,y,s,alpha)
  rect(-11,-12,3,6,.71,.47,.27,alpha);rect(2,-6,7,2,.27,.67,.68,alpha);rect(-6,-8,7,2,.93,.73,.46,alpha);g.pop()
 end
 local function person(image,x,y,s,alpha)
- local g=love.graphics; g.setColor(1,1,1,alpha); g.draw(image,math.floor(x-8*s),math.floor(y-16*s),0,s/2,s/2)
+ Cartoon.traveler(image,x,y,20*s,28*s,alpha)
 end
 function I.renderScene()
  local g=love.graphics; local t=I.time; local loc=I.selected

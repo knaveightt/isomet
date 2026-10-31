@@ -3,6 +3,8 @@ local V=require('visual')
 local Scenery=require('scenery')
 local Campaign=require('campaign')
 local P=require('progress')
+local Art=require('cartoon')
+local Bridge=require('bridge')
 local T={zoom=.68,panX=0,panY=0}
 -- Geometry is a presentation layout, independent of saved room-local coordinates.
 local layout={{0,0},{1,0},{2,0},{2,1},{0,1},{1,2},{2,3},{-1,0},{1,-1},{3,0},{0,-1},{3,1},{-1,1},{1,3},{3,3}}
@@ -40,6 +42,10 @@ function T.update(dt,rooms,id,player,p)
   else distance=distance-lengths[i]end end
   if walk.time>=1 then T.walk=nil end
  end
+ if T.px then
+  local delta=(x-y)-(T.px-T.py);if math.abs(delta)>.002 then T.face=delta<0 and -1 or 1 end
+  T.moving=math.abs(x-T.px)+math.abs(y-T.py)>.002
+ end
  T.px,T.py=x,y
  if not T.cx then T.cx,T.cy=x,y end
  local f=1-math.exp(-dt*5);T.cx=T.cx+(x-T.cx)*f;T.cy=T.cy+(y-T.cy)*f
@@ -48,32 +54,41 @@ function T.drag(dx,dy)T.panX=T.panX+dx;T.panY=T.panY+dy end
 function T.zoomBy(amount)T.zoom=math.max(.38,math.min(1.25,T.zoom+amount))end
 function T.recenter()T.panX=0;T.panY=0 end
 local function floor(project,r,id,p)
- local g=love.graphics;local c=V.biomes[r.level];local s=T.zoom
- V.box(project,0,0,r.width,r.height,-16,16,c.edge)
- for x=0,r.width-1 do for y=0,r.height-1 do
-  local edge=x==0 or y==0 or x==r.width-1 or y==r.height-1
-  local tile=edge and c.trim or V.shade(c.tile,1+((x*13+y*7+id)%5)*.012)
-  if r.slot==11 and not p.lightOn then tile=V.shade(tile,.68)end
-  V.box(project,x+.025,y+.025,.95,.95,0,2,tile)
-  if not edge and (x*3+y*5)%13==0 then local xx,yy=project(x+.4,y+.4,3);g.setColor(1,1,.9,.30);g.rectangle('fill',xx-2*s,yy,4*s,2*s)end
- end end
+ local a,b=project(0,0);local left=project(0,r.height);local right=project(r.width,0)
+ local width=right-left
+ local atlas=Art.load('terrain');local rect=atlas.rects[r.level]
+ local height=width*rect[4]/rect[3]
+ -- The illustrated top surface is a 2:1 diamond, with soil/stone depth below.
+ Art.drawRect('terrain',r.level,left,b-2*T.zoom,width,height)
+ if r.slot==11 and not p.lightOn then
+  local g=love.graphics;local c,d=project(r.width,0);local e,f=project(r.width,r.height);local j,k=project(0,r.height)
+  g.setColor(.10,.21,.31,.24);g.polygon('fill',a,b,c,d,e,f,j,k)
+ end
 end
 local function arch(project,r,side,target,p)
- local g=love.graphics;local x,y=T.gate(r,side);local s=T.zoom;local biome=V.biomes[r.level]
- local dx,dy=0,0;if side=='NE'or side=='SW'then dx=.7 else dy=.7 end
- local a,b=project(x-dx,y-dy);local c,d=project(x+dx,y+dy)
- g.setLineWidth(13*s);V.color({.59,.42,.27});g.line(a,b,a,b-49*s,c,d-49*s,c,d)
- g.setLineWidth(9*s);V.color(biome.trim);g.line(a-1*s,b,a-1*s,b-49*s,c-1*s,d-49*s,c-1*s,d)
- g.setLineWidth(3*s);V.color(p:locked(target)and{.98,.64,.22}or{.27,.78,.74});g.line(a,b-43*s,c,d-43*s)
- g.setLineWidth(1)
- for _,point in ipairs({{a,b},{c,d}})do V.color({1,.88,.49});g.rectangle('fill',point[1]-3*s,point[2]-28*s,6*s,9*s)end
- local _,_,door=Campaign.info(target)
- if door then local px,py=project(x,y,60);V.color({.93,.76,.41});g.polygon('fill',px,py-5*s,px+6*s,py,px,py+5*s,px-6*s,py)end
+ local g=love.graphics;local x,y=T.gate(r,side);local s=T.zoom;local dx,dy=0,0
+ if side=='NE'or side=='SW'then dx=.7 else dy=.7 end
+ local ax,ay=project(x-dx,y-dy);local bx,by=project(x+dx,y+dy)
+ local path={ax,ay}
+ for i=0,18 do local q=i/18;path[#path+1]=ax+(bx-ax)*q;path[#path+1]=ay+(by-ay)*q-31*s-math.sin(q*math.pi)*20*s end
+ path[#path+1]=bx;path[#path+1]=by
+ g.setLineJoin('bevel');g.setLineWidth(21*s);V.color({.61,.41,.25});g.line(path)
+ g.setLineWidth(16*s);V.color({.99,.85,.60});g.line(path)
+ g.setLineWidth(4*s);V.color({1,.96,.78});g.line(path)
+ for _,point in ipairs({{ax,ay},{bx,by}})do
+  V.color({.67,.45,.27});g.ellipse('fill',point[1],point[2],11*s,5*s)
+  V.color({.98,.82,.54});g.ellipse('fill',point[1],point[2]-4*s,11*s,5*s)
+ end
+ local px,py=project(x,y,58);V.color(p:locked(target)and{.98,.65,.22}or{.24,.70,.69});g.circle('fill',px,py,9*s)
+ V.color({1,.93,.70});g.setLineWidth(1.5*s);g.circle('line',px,py,9*s);g.setLineWidth(1)
+ V.color({1,.97,.80});g.circle('fill',px,py-1*s,2.4*s);g.polygon('fill',px-1.5*s,py,px+1.5*s,py,px+2*s,py+5*s,px-2*s,py+5*s)
 end
 local function column(project,p,level)
- local c=V.biomes[level];V.box(project,p.x-.24,p.y-.24,.48,.48,0,36,c.trim)
- V.box(project,p.x-.33,p.y-.33,.66,.66,36,6,{.97,.86,.62});V.box(project,p.x-.36,p.y-.36,.72,.72,0,5,c.edge)
- local x,y=project(p.x,p.y,47);V.color(c.leaf);love.graphics.rectangle('fill',x-6*T.zoom,y,12*T.zoom,5*T.zoom)
+ local g=love.graphics;local s=T.zoom;local x,y=project(p.x,p.y)
+ g.setColor(.20,.29,.22,.17);g.ellipse('fill',x,y,13*s,5*s)
+ V.color({.67,.49,.33});g.rectangle('fill',x-6*s,y-26*s,12*s,25*s,4*s,4*s)
+ V.color({.95,.82,.58});g.rectangle('fill',x-4*s,y-26*s,7*s,25*s,3*s,3*s)
+ Art.draw('scenery',6,x,y-22*s,42*s,40*s,.5,1)
 end
 local function fog(project,r,time,strength)
  strength=strength or 1
@@ -104,7 +119,7 @@ function T.draw(rooms,id,player,p,character,time,fonts)
  local s=T.zoom;local cx,cy=T.cx,T.cy
  if not cx then cx,cy=T.position(id,player.x,player.y)end
  local ox=w/2-(cx-cy)*30*s+T.panX;local oy=h*.49-(cx+cy)*15*s+T.panY
- local function global(x,y,z)return math.floor(ox+(x-y)*30*s),math.floor(oy+(x+y)*15*s-(z or 0)*s)end
+ local function global(x,y,z)return ox+(x-y)*30*s,oy+(x+y)*15*s-(z or 0)*s end
  local function projection(roomId)local rx,ry=T.origin(roomId);return function(x,y,z)return global(rx+x,ry+y,z)end end
  T.project=global
  local visible,frontier=T.visibility(rooms,id,p)
@@ -115,13 +130,7 @@ function T.draw(rooms,id,player,p,character,time,fonts)
    local tx,ty=T.gate(r,side);local a,b=rp(tx,ty)
    local opposite=({NE='SW',SW='NE',SE='NW',NW='SE'})[side];local tx1,ty1=T.gate(rooms[target],opposite);local c,d=projection(target)(tx1,ty1)
    if not p.seen[target]then c=a+(c-a)*.55;d=b+(d-b)*.55 end
-   V.color({.45,.36,.25});g.setLineWidth(24*s);g.line(a,b+5*s,c,d+5*s)
-   V.color(p.unlocked[P.edge(roomId,target)]and{.92,.76,.49}or{.72,.78,.72});g.setLineWidth(17*s);g.line(a,b,c,d)
-   g.setLineWidth(1)
-   local dist=math.sqrt((c-a)^2+(d-b)^2)
-   for n=1,math.floor(dist/(10*s))do local q=n*10*s/dist;local x,y=a+(c-a)*q,b+(d-b)*q
-    V.color({.52,.40,.28},.35);g.line(x-3*s,y-2*s,x+3*s,y+2*s)
-   end
+   Bridge.draw(a,b,c,d,s,p.unlocked[P.edge(roomId,target)])
   end end
  end
  local objects={}
@@ -140,14 +149,14 @@ function T.draw(rooms,id,player,p,character,time,fonts)
  local px,py=T.px,T.py;if not px then px,py=T.position(id,player.x,player.y)end
  objects[#objects+1]={depth=px+py,draw=function()
   local x,y=global(px,py,3);g.setColor(.20,.31,.26,.23);g.ellipse('fill',x,y,12*s,5*s)
-  local bob=T.walk and math.sin(time*16)*2 or 0;g.setColor(1,1,1);g.draw(character,math.floor(x-16*s),math.floor(y-31*s+bob*s),0,s,s)
-  V.color({1,.88,.34});g.polygon('fill',x-4*s,y-42*s,x+4*s,y-42*s,x,y-36*s)
+  local bob=T.moving and math.sin(time*13)*1.7 or 0;Art.traveler(character,x,y+bob*s,40*s,60*s,1,T.moving and math.sin(time*6)*.025 or 0,T.face==-1)
+  V.color({1,.88,.34});g.polygon('fill',x-4*s,y-70*s,x+4*s,y-70*s,x,y-62*s)
  end}
  table.sort(objects,function(a,b)return a.depth<b.depth end);for _,o in ipairs(objects)do o.draw()end
  for roomId,age in pairs(T.reveals or {})do if rooms[roomId].level==current.level then fog(projection(roomId),rooms[roomId],time,1-age)end end
  -- The player locator is above roofs and arches even when the sprite is occluded.
  local lx,ly=global(px,py,3);V.color({1,.76,.18});g.setLineWidth(2);g.ellipse('line',lx,ly,15*s,7*s);g.setLineWidth(1)
- V.color({1,.89,.39});g.polygon('fill',lx-6*s,ly-46*s,lx+6*s,ly-46*s,lx,ly-38*s)
+ V.color({1,.89,.39});g.polygon('fill',lx-6*s,ly-74*s,lx+6*s,ly-74*s,lx,ly-66*s)
  -- Labels only for discovered rooms; keep the active room readable in the main HUD.
  for _,roomId in ipairs(visible)do if roomId~=id then local r=rooms[roomId];local x,y=projection(roomId)(r.width/2,r.height+.5)
   if x>-180 and x<w+180 and y>120 and y<h-120 then

@@ -124,7 +124,7 @@ The opening now follows the master plan's companion identities:
 
 The original opposite-gender sprite selection remains for human companions; City renders that sprite at child scale. The character roster has not yet gained dedicated child art. The dog communicates through actions and traces, never written dialogue. The origin changes narrative and recurring props, never required rewards or dependencies.
 
-Scenery adds a kiln/chimney, upside-down harbor boat, snowfair stall or orchard tree, alongside recognizable origin props. It is an original pixel blockout. The requested Township direction informs warmth, tactile puzzle pieces and progress readability; it is not a reproduction of Township art, nor a completed production art pass. The latest art pass adds clearer original architecture and recurring illustrated props; see ART_DIRECTION.md. Audio motifs remain unimplemented because this LÖVE build has no audio system enabled.
+The current visual pass uses generated illustrated terrain, four detailed building archetypes, rounded trees, planters, benches, chests, guardians and eight travelers. The prior minimal pixel/voxel presentation has been replaced in the world view; smooth shaded art and detailed rope bridges provide the requested casual mobile-game direction. See ART_DIRECTION.md and assets/cartoon/README.md for the current pipeline and generation prompts. Audio motifs remain unimplemented because this LÖVE build has no audio system enabled.
 
 ## Failure, checkpoint and zero-heart behavior
 
