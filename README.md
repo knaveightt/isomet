@@ -130,3 +130,15 @@ For a brief startup-only check: `XDG_DATA_HOME=/tmp/miswander-smoke ISOMET_SMOKE
 
 
 The illustrated interface now matches the world: cream-and-gold panels, glossy teal/orange buttons, portrait and heart HUD, selection badges, and bundled readable typography. Cutscene captions render at full window resolution. See [ART_DIRECTION.md](ART_DIRECTION.md) for the shared UI helpers and font credits.
+
+
+### Passage puzzle upgrades
+
+Doorways now rotate between making **7 matches in 20 swaps**, collecting **15 gems of one color in 22 swaps**, and breaking **6 clay seals in 24 swaps**. Each connection keeps its objective when approached from either side. Clay stays fixed beneath falling gems and breaks when a match or special effect hits its tile or a neighboring tile.
+
+Match four in a line to earn a **Lantern Spark** (row/column clear), a T/L to earn a **Void Bloom** (3×3 blast), or five in a line to earn a **Memory Star** (swap with any color to clear it). Match specials to activate them, combine two, or chain effects. Two Stars clear the board. Open **How to play** or press **H** during a puzzle for Pip’s guide. Retreat remains free; running out of swaps costs one heart. No world timer is enabled.
+
+Run `lua tests/match3_test.lua` for the new rule checks and `python3 tests/run_love_tests.py` for the complete game flow and puzzle-screen captures.
+
+
+Puzzle pieces now use an illustrated atlas with glossy gems, a glowing lantern, dedicated power-up tokens and carved clay seals. Matches produce colored twinkles; special effects add beams, expanding rings and bursts, and broken seals shed fragments. Winning moves finish their brief effects before opening the next room. See [puzzle art credits and prompt](assets/cartoon/PUZZLE_ART.md).

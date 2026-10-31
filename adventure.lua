@@ -2,6 +2,8 @@ local Campaign=require('campaign')
 local Progress=require('progress')
 local Match=require('match3')
 local V=require('visual')
+local PuzzleArt=require('puzzle_art')
+local PuzzleFX=require('puzzle_fx')
 local A={};A.__index=A
 local function sortedKeys(t)local keys={};for k in pairs(t) do keys[#keys+1]=k end;table.sort(keys);return keys end
 function A.new(context,p)return setmetatable({ctx=context,p=p,clock=0,choice=1,scroll=0,attempt=0},A)end
@@ -10,7 +12,7 @@ function A:show(title,text,buttons)
  self.hits={}
  self.panel={title=title,text=text,buttons=buttons or {{'Back to exploration',function()self:close()end}}};self.choice=1;self.scroll=0
 end
-function A:close()self.panel=nil;self.board=nil;self.timing=nil;self.hits={} end
+function A:close()self.panel=nil;self.board=nil;self.timing=nil;self.hits={};self.puzzleFX=nil;self.boardResolving=false end
 function A:retreat()
  self:close()
  local l,s=Campaign.info(self.p.room)
@@ -41,14 +43,14 @@ function A:enter(side,target)
  if self.p.hearts<=0 then self:noLives();return end
  self:startBoard('Unseal the passage',function()
   self.p.unlocked[edge]=true;self.ctx.move(side);self:arrival()
- end)
+ end, nil, Match.profile(self.p.room,target))
 end
-function A:startBoard(title,callback,goal)
- self.attempt=self.attempt+1;self.hits={}
- self.panel=nil;self.timing=nil;self.board=Match.new(love.math.random,goal or 5,18);self.boardTitle=title;self.boardDone=callback;self.cursor={x=1,y=1};self.choice=1
+function A:startBoard(title,callback,goal,objective)
+ self.attempt=self.attempt+1;self.hits={};self.puzzleFX=nil;self.boardResolving=false
+ self.panel=nil;self.timing=nil;self.board=Match.new(love.math.random,goal or 5,18,objective);self.boardTitle=title;self.boardDone=callback;self.cursor={x=1,y=1};self.choice=1
 end
 function A:finishBoard()
- if not self.board then return end
+ if not self.board or self.boardResolving then return end
  if self.board.won then
   local callback=self.boardDone;self.board=nil
   callback();self:save()
@@ -81,7 +83,7 @@ function A:shortcut(target)
  local function cross()self.p.unlocked[key]=true;self:close();self.ctx.teleport(target,true);self:arrival()end
  if self.p.unlocked[key]then cross()
  elseif self.p.hearts<=0 then self:noLives()
- else self:startBoard('Unseal the side passage',cross)end
+ else self:startBoard('Unseal the side passage',cross,nil,Match.profile(self.p.room,target))end
 end
 function A:inspect()
  local id=self.p.room;local l,s,d=Campaign.info(id);self.p.inspected[id]=true;self:save()
@@ -248,6 +250,11 @@ function A:hint()
 end
 function A:update(dt)
  self.clock=self.clock+dt
+ if self.puzzleFX and not self.panel then
+  if self.puzzleFX:update(dt)then
+   self.puzzleFX=nil;self.boardResolving=false;self:finishBoard()
+  end
+ end
  self.toastTime=math.max(0,(self.toastTime or 0)-dt)
  if self.p:regenerate() then self:save() end
  if self.timing then self.timing.time=self.timing.time+dt end
@@ -257,17 +264,26 @@ function A:update(dt)
  end
 end
 function A:active()return self.panel or self.board or self.timing end
+function A:boardHelp()
+ self:show('Pip’s puzzle guide',
+  'Complete the goal above the board before your swaps run out. Each doorway asks for matches, a particular gem color, or clay seals.\n\nLantern Spark: match four in a line. Match it again to clear its entire row or column, shown by its stripe.\n\nVoid Bloom: make an intersecting T or L match. Match the Bloom to clear a 3 × 3 area.\n\nMemory Star: match five in a line. Swap the Star with any neighboring gem to clear that color.\n\nSwap two special pieces together to activate both. Effects can trigger other special pieces.\n\nClay stays on its tile while gems fall. A match on or beside it breaks the seal; special blasts break seals too.\n\nEvery neighboring swap uses one move, even if it makes no match. A board with no legal moves reshuffles free. Retreat costs no life; running out of swaps costs one heart.',
+  {{'Return to puzzle',function()self.panel=nil end}})
+end
 function A:boardSelect(x,y)
- local b=self.board;if not b then return end
+ local b=self.board;if not b or self.boardResolving then return end
  if b.selected then local previous=b.selected;b.selected=nil
-  if math.abs(previous.x-x)+math.abs(previous.y-y)==1 then b:swap(previous.x,previous.y,x,y);self:finishBoard()
+  if math.abs(previous.x-x)+math.abs(previous.y-y)==1 then
+   if b:swap(previous.x,previous.y,x,y)then
+    self.puzzleFX=PuzzleFX.new(b.events);self.boardResolving=true
+   else self:finishBoard()end
   else b.selected={x=x,y=y} end
  else b.selected={x=x,y=y} end
 end
 function A:keypressed(key)
  if self.board then
+  if self.panel then if key=='escape'then self.panel=nil else self:panelKey(key)end;return end
+  if key=='h'then self:boardHelp();return end
   if key=='escape' then self:show('Retreat safely?','Leaving costs no life. This unfinished board will reset.',{{'Return to board',function()self.panel=nil end},{'Return to maze',function()self:retreat()end}});return end
-  if self.panel then return self:panelKey(key) end
   local c=self.cursor
   if key=='left' then c.x=math.max(1,c.x-1) elseif key=='right' then c.x=math.min(7,c.x+1)
   elseif key=='up' then c.y=math.max(1,c.y-1) elseif key=='down' then c.y=math.min(7,c.y+1)
@@ -286,39 +302,6 @@ function A:panelKey(key)
  elseif key=='return' or key=='space' then self.panel.buttons[self.choice][2]() end
 end
 function A:wheelmoved(_,y)if self.panel then self.scroll=math.max(0,self.scroll-y*45) end end
-local gemColors={{.94,.43,.30},{.34,.75,.88},{.72,.53,.96},{.97,.77,.29},{.39,.80,.47},{.94,.52,.73}}
-local function gem(g,x,y,size,v)
- local c=gemColors[v];local cx,cy=x+size/2,y+size/2;local r=math.floor(size*.34)
- g.setColor(.21,.35,.30,.20);g.ellipse('fill',cx,cy+r*.85,r*.95,r*.3)
- local function shade(q)g.setColor(math.min(1,c[1]*q),math.min(1,c[2]*q),math.min(1,c[3]*q))end
- if v==1 then
-  shade(.67);g.polygon('fill',cx-r,cy-r*.4,cx-r*.6,cy-r,cx+r*.6,cy-r,cx+r,cy-r*.4,cx,cy+r)
-  shade(1.15);g.polygon('fill',cx-r,cy-r*.4,cx-r*.6,cy-r,cx+r*.6,cy-r,cx+r,cy-r*.4)
-  shade(.96);g.polygon('fill',cx-r,cy-r*.4,cx+r*.4,cy-r*.4,cx,cy+r)
- elseif v==2 then
-  shade(.69);g.polygon('fill',cx,cy-r,cx+r,cy,cx,cy+r,cx-r,cy)
-  shade(1.2);g.polygon('fill',cx,cy-r,cx,cy,cx-r,cy)
-  shade(1);g.polygon('fill',cx,cy-r,cx+r,cy,cx,cy)
-  shade(.85);g.polygon('fill',cx-r,cy,cx,cy,cx,cy+r)
- elseif v==3 then
-  shade(.68);g.rectangle('fill',cx-r,cy-r,r*2,r*2,3,3)
-  shade(1.2);g.polygon('fill',cx-r,cy-r,cx+r,cy-r,cx+r-5,cy-r+5,cx-r+5,cy-r+5)
-  shade(1);g.rectangle('fill',cx-r+5,cy-r+5,r*2-10,r*2-10)
-  shade(.84);g.polygon('fill',cx+r-5,cy-r+5,cx+r,cy-r,cx+r,cy+r,cx+r-5,cy+r-5)
- elseif v==4 then
-  shade(.82);for i=0,7 do local a=i*math.pi/4;g.rectangle('fill',cx+math.cos(a)*r*.75-3,cy+math.sin(a)*r*.75-3,6,6)end
-  shade(1);g.circle('fill',cx,cy,r*.78);shade(1.18);g.circle('fill',cx-2,cy-2,r*.54)
-  g.setColor(1,.98,.74);g.rectangle('fill',cx-2,cy-r*.4,4,r*.8)
- elseif v==5 then
-  shade(.73);g.polygon('fill',cx-r*.7,cy+r*.5,cx-r*.8,cy-r*.3,cx+r*.5,cy-r,cx+r*.8,cy+r*.2,cx,cy+r)
-  shade(1.15);g.polygon('fill',cx-r*.7,cy+r*.5,cx-r*.8,cy-r*.3,cx+r*.5,cy-r,cx,cy)
-  g.setColor(.81,1,.65);g.setLineWidth(2);g.line(cx-r*.45,cy+r*.5,cx+r*.4,cy-r*.65);g.setLineWidth(1)
- else
-  shade(.75);g.polygon('fill',cx-r,cy-2,cx+r,cy-2,cx,cy+r)
-  shade(1);g.circle('fill',cx-r*.42,cy-r*.32,r*.58);g.circle('fill',cx+r*.42,cy-r*.32,r*.58);g.polygon('fill',cx-r*.95,cy-r*.2,cx+r*.95,cy-r*.2,cx,cy+r*.85)
- end
- g.setColor(1,1,.94,.9);g.rectangle('fill',math.floor(cx-r*.38),math.floor(cy-r*.58),math.max(3,size*.13),math.max(3,size*.07))
-end
 function A:draw(fonts)
  local g=love.graphics;local w,h=g.getDimensions();self.hits={}
  V.background(w,h,self.clock)
@@ -343,19 +326,27 @@ function A:draw(fonts)
   self.boardLayout={left=left,top=top,size=size}
   V.card(left-8,top-8,size*7+16,size*7+16,false)
   V.heading(self.boardTitle,20,16,w-40,fonts.title)
-  g.setFont(fonts.body);V.color(V.ink);g.printf('Matches '..math.min(b.count,b.goal)..' / '..b.goal..'     Swaps '..b.moves..'     Hearts '..self.p.hearts..' / 5',0,68,w,'center')
-  V.progress(left,103,size*7,12,b.count/b.goal)
+  g.setFont(fonts.body);V.color(V.ink);g.printf(b:objectiveText()..'     Swaps '..b.moves..'     Hearts '..self.p.hearts..' / 5',0,68,w,'center')
+  V.progress(left,103,size*7,12,b:progress()/b.goal)
   for y=1,7 do for x=1,7 do local xx,yy=left+(x-1)*size,top+(y-1)*size
-   g.setColor((x+y)%2==0 and .88 or .81,.88,.74);g.rectangle('fill',xx+1,yy+1,size-2,size-2,4,4)
-   gem(g,xx,yy,size,b.board[(y-1)*7+x])
+   V.color({.60,.72,.63});g.rectangle('fill',xx+2,yy+3,size-4,size-4,8,8)
+   V.color((x+y)%2==0 and {.91,.96,.85}or{.80,.90,.79});g.rectangle('fill',xx+2,yy+1,size-4,size-5,8,8)
+   V.color({1,1,.93},.6);g.rectangle('fill',xx+8,yy+3,size-16,2,1,1)
+   local index=(y-1)*7+x
+   if b.clay[index]then
+    PuzzleArt.seal(xx,yy,size)
+    PuzzleArt.piece(xx+size*.1,yy+size*.1,size*.8,b.board[index],b.specials[index])
+   else PuzzleArt.piece(xx,yy,size,b.board[index],b.specials[index])end
    if (b.selected and b.selected.x==x and b.selected.y==y) or (self.cursor.x==x and self.cursor.y==y) then
     g.setColor(.98,.55,.15);g.setLineWidth(2);g.rectangle('line',xx+2,yy+2,size-4,size-4,4,4);g.setLineWidth(1)
    end
   end end
+  if self.puzzleFX then self.puzzleFX:draw(left,top,size)end
   g.setFont(fonts.body);V.color(V.ink);g.printf(b.message,24,top+size*7+17,w-48,'center')
-  g.setFont(fonts.small);V.color(V.muted);g.printf('Failure loses 1 heart. Retreat is free. Successful passage unlocks persist.',20,h-80,w-40,'center')
-  V.color(V.muted);g.printf('Tap two neighbors · Arrows + Space/Enter · 18 swaps to reach the goal · Esc: retreat',20,h-58,w-40,'center')
+  g.setFont(fonts.small);V.color(V.muted);g.printf('Match a special to fire it. Swap a Star with any gem, or combine two specials. Esc: retreat.',20,h-80,w-40,'center')
+  V.color(V.muted);g.printf('4: line Spark · T/L: blast Bloom · 5: color Star · Match beside clay to break it',20,h-58,w-40,'center')
   self.hits[1]={x=w/2-110,y=h-36,w=220,h=28,action=function()self:retreat()end};V.button(w/2-110,h-36,220,28,false);V.buttonText('Return safely to maze',w/2-110,h-36,220,28,fonts.small)
+  V.button(32,h-36,140,28,false);V.buttonText('How to play · H',32,h-36,140,28,fonts.small);self.hits[2]={x=32,y=h-36,w=140,h=28,action=function()self:boardHelp()end}
  elseif self.timing then
   local task=self.timing;local l,_,d=Campaign.info(task.id);local phase=(task.time/(task.assist and 5 or 3.6))%1;local safe=phase<.48
   V.heading(d[2],20,50,w-40,fonts.title)

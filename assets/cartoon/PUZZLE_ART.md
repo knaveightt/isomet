@@ -1,0 +1,11 @@
+# Illustrated puzzle atlas
+
+`puzzle-atlas.png` is an original transparent RGBA atlas created for Miswander using the built-in imagegen tool. The generated PNG is copied unchanged into this project. Runtime source rectangles live in `cartoon_atlas.lua`; images from reference games were not imported.
+
+The 1448×1086 source uses four columns and three rows of 362×362 cells. Rows contain six colored pieces, row/column Sparks, Bloom, Star, clay seal and sparkle cluster. `puzzle_art.lua` draws them through the existing cached atlas renderer. A colored enamel stud on special pieces retains their match color.
+
+Exact final generation prompt:
+
+> Use case: stylized-concept. Asset type: one production transparent sprite atlas for Miswander, a bright polished casual mobile adventure match-three game. Create exactly 12 individual isolated icons in a precise 4-column by 3-row evenly spaced grid. Transparent background, no text, no labels, no grid lines. Each icon occupies at most 70% of its equal cell, centered, with generous transparent gutters. Consistent soft 3D painted cartoon style, rounded chunky silhouettes, warm upper-left highlights, shaded dimensional edges, saturated jewel colors, playful premium farming-game visual quality, readable at 48 pixels, no pixel art, no sharp low-poly geometry. Row 1 left to right: red-orange rounded teardrop ember crystal; cyan-blue rounded diamond water jewel; purple cushion-square amethyst; golden miniature round lantern with glowing yellow glass and small handle. Row 2 left to right: emerald-green plump leaf with curved stem; glossy pink heart; horizontal gold lightning arrow token in turquoise round medallion (row-clearing Spark); vertical gold lightning arrow token in turquoise round medallion (column-clearing Spark). Row 3 left to right: orange-gold flower-shaped magical blast orb with glowing center (Bloom); rainbow opalescent five-point gold star (Memory Star); terracotta square clay tablet with worn beveled edges and a spiral seal imprint; cluster of golden twinkles and tiny stars for a particle effect. No opaque square backgrounds behind the icons. No extra items. Original game artwork.
+
+Source: `/home/knave8/.codex/generated_images/01a1459e-2675-7ca1-a15f-1c8416d66b41/exec-8c389a7d-5360-4a0a-bfb7-e4bea8b6e45a.png`.

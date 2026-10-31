@@ -88,3 +88,12 @@ The interface shares the world's warm mobile-adventure palette: cream inset page
 Bundled Open Sans ExtraBold headings and Semibold body/small text render directly at window resolution. Font files, copyright notice and Apache 2.0 terms are in `assets/fonts/`; no system font installation is needed. Cutscene captions also render at window resolution in framed panels, retaining the existing scenes and timing without enlarging tiny caption glyphs. The HUD pairs the traveler portrait with the name/room title and five illustrated heart indicators. Match-three progress and timing challenges use the same beveled frames.
 
 `visual.lua` owns the reusable card, button, centered label, heading, selection badge, heart, progress and icon drawing functions. The setup screens, adventure panels and HUD consume those helpers so future screens can follow the same style. The real LÖVE test captures setup, inventory, the six-option satchel menu, puzzles, challenges and all three cutscenes at 800×600 as well as the default size.
+
+
+## Illustrated match-three pieces and feedback
+
+`assets/cartoon/puzzle-atlas.png` adds twelve transparent illustrations: six rounded colored pieces, four dedicated power-up designs, a carved clay seal and a sparkle cluster. They use the same saturated, softly lit cartoon treatment as the world assets. The unchanged generated source, full prompt and provenance are documented in [assets/cartoon/PUZZLE_ART.md](assets/cartoon/PUZZLE_ART.md). `puzzle_art.lua` draws cached atlas quads at window resolution; specials carry a small enamel color indicator. Sealed tiles show the clay tablet behind a smaller piece.
+
+`match3.lua` emits per-cascade snapshots of cleared pieces, created/fired specials and broken seals before gravity changes their coordinates. `puzzle_fx.lua` consumes those snapshots for localized match glows, colored particles, clay fragments, Spark beams, expanding Bloom/Star rings and special-birth sparkles. It uses no gameplay RNG. Effect storage is bounded to 360 particles and seven displayed cascade stages (under two seconds); effects stay clipped to the board frame. No full-screen strobing is used.
+
+Input waits briefly during match feedback. Winning and failed boards finish their effects before invoking the existing room/reward/life flow. Help pauses the effect and resumes the same board; retreat discards it. Real LÖVE checks cover input during resolution, paused effects, once-only win callbacks, retained goals, and minimum-size art/effect rendering.

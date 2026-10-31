@@ -1,5 +1,19 @@
 -- Source rectangles only: atlases are kept unmodified.
 return {
+ puzzle={file="assets/cartoon/puzzle-atlas.png",width=1448,height=1086,rects={
+  {0,0,362,362},
+  {362,0,362,362},
+  {724,0,362,362},
+  {1086,0,362,362},
+  {0,362,362,362},
+  {362,362,362,362},
+  {724,362,362,362},
+  {1086,362,362,362},
+  {0,724,362,362},
+  {362,724,362,362},
+  {724,724,362,362},
+  {1086,724,362,362},
+ }},
  scenery={file="assets/cartoon/scenery-atlas.png",width=1254,height=1254,rects={
   {5,63,313,367},
   {331,99,315,345},

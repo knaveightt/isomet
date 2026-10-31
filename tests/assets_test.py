@@ -5,7 +5,7 @@ import hashlib
 import re
 root=Path(__file__).resolve().parents[1]
 text=(root/'cartoon_atlas.lua').read_text()
-expected={'scenery':12,'travelers':8,'terrain':4}
+expected={'scenery':12,'travelers':8,'terrain':4,'puzzle':12}
 for sheet,count in expected.items():
     section=re.search(r' '+sheet+r'=\{file="([^"]+)",width=(\d+),height=(\d+),rects=\{(.*?)\n \}\}',text,re.S)
     assert section, sheet

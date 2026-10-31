@@ -161,3 +161,19 @@ Core tests cover 200 seeded campaign geometries, encoded/decoded rooms, required
 The isolated LÖVE integration runner uses actual game callbacks and valid board swaps. It covers splash deferral, character/origin input, intro completion, a first-time passage and free return, all 32 tasks, every task type, rescue, one-life failure deduplication, current-world respawn, persistence/resume and 800×600 rendering. It produces screenshots for visual review. Scripted checks do not certify a full manual playthrough or physical mobile performance.
 
 Next production steps are bespoke room geometry and movement hazards, distinct guardian logic and art, animated discoveries/transitions/finale, audio identity, more varied and animated match-three objectives, illustrated item cards and tracking, richer origin props, mobile-safe layout/accessibility testing, native packaging and save migration/version policy. Word mode and any commercial systems require their own design and implementation decisions.
+
+
+## Special pieces and passage objectives
+
+`match3.lua` keeps a 49-element color board, a sparse `specials` map that moves with gravity, and a sparse `clay` map fixed to tile positions. Connected horizontal/vertical match runs create one special: five has priority over an intersection, which has priority over four. The player's destination tile is preferred for its birth; cascade births choose a stable tile. Newly created specials survive their creation match. Existing specials expand the cleared-cell set recursively before seals, collection counters and column gravity are resolved.
+
+A Star/color swap activates without a normal match; two specials also activate without one. Double Stars clear all tiles. Line Sparks clear their indicated axis; Blooms clear a 3×3 area. Special hits can chain. Collection counts removed target gems, while seal progress counts unique broken fixed overlays, independently of the normal match count. No-move reshuffles retain specials and seals, consume no swaps, and produce a board without automatic starting matches.
+
+`Match.profile(room,target)` chooses one of three modest starting move budgets from the canonical connection endpoints, so a doorway's objective does not change with direction, restart or retry. Existing unlocked passages and saved progress need no migration. Authored task/practice boards retain their existing match goals and gain the same special-piece rules. `adventure.lua` displays objective-specific progress, marks special pieces/sealed tiles, and offers a scrollable guide via mouse/touch or H; closing help resumes the exact board. Timer pressure is deferred.
+
+Validation includes fixed special-creation/effect fixtures, invalid-swap rollback, objective-specific wins/failures, fixed seal retention, special retention on reshuffle, and real LÖVE clearing of all three objectives plus help-overlay input at 800×600.
+
+
+### Puzzle rendering and effects
+
+`puzzle_art.lua` replaces the procedural gem renderer with cached `cartoon.lua` atlas sprites. `puzzle_fx.lua` reads the presentation-only `board.events` snapshots. Rule resolution stays synchronous and independent of frame rate; effects never alter counts or use gameplay randomness. `adventure.lua` holds a brief `boardResolving` input lock and delays `finishBoard()` until effects end, preventing an earned special or final winning burst from disappearing immediately. Opening help pauses presentation time, while retreat clears it. The integration test exercises real selection callbacks and asserts that a winning callback runs once after feedback, with no extra swaps accepted during the lock.
