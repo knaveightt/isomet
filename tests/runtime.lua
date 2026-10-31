@@ -2,10 +2,12 @@
 -- This exercises the real callbacks while keeping production saves isolated.
 local originalLoad=love.load
 function love.errorhandler(message)io.stderr:write(tostring(message)..'\n'..debug.traceback()..'\n');os.exit(1)end
-local function capture(name)
- local g=love.graphics;local w,h=g.getDimensions();local canvas=g.newCanvas(w,h)
+local function capture(name,width,height)
+ local g=love.graphics;local dimensions=g.getDimensions
+ if width then g.getDimensions=function()return width,height end end
+ local w,h=g.getDimensions();local canvas=g.newCanvas(w,h)
  local old=g.getCanvas();g.setCanvas(canvas);love.draw();g.setCanvas(old)
- canvas:newImageData():encode('png',name..'.png')
+ canvas:newImageData():encode('png',name..'.png');g.getDimensions=dimensions
 end
 local function solveBoard()
  local attempts=0;local limit=adventure.board.moves
@@ -48,9 +50,20 @@ function love.load()
  Intro.selected=2;Intro.choose();Intro.time=12.49;love.update(.02)
  assert(campaignStarted and journey.profile.origin=='Suburb' and roomId==1)
  adventure:close();fade=0;capture('test-maze')
+ -- Clicking a clear path moves the real traveler; stepping outside an old
+ -- rectangular room remains possible on its organic land apron.
+ local targetX,targetY=rooms[1].width/2+.8,rooms[1].height/2+.6
+ local gx,gy=Tabletop.position(1,targetX,targetY);local sx,sy=Tabletop.project(gx,gy)
+ love.mousepressed(sx,sy,1);assert(walkPath)
+ for tick=1,40 do love.update(.05)end
+ assert(math.abs(player.x-targetX)<.05 and math.abs(player.y-targetY)<.05 and not walkPath)
  -- A passage remains closed until the real match-three rules report success.
  local side;for s,id in pairs(rooms[1].visualExits)do if id==8 then side=s end end;assert(side)
- adventure:enter(side,8);assert(roomId==1 and adventure.board)
+ local gateX,gateY=Tabletop.gate(rooms[1],side);local worldX,worldY=Tabletop.position(1,gateX,gateY)
+ capture('test-click-approach');local mouseX,mouseY=Tabletop.project(worldX,worldY,24)
+ love.mousepressed(mouseX,mouseY,1);assert(walkPath and not adventure.board)
+ for tick=1,180 do love.update(.05);if adventure.board then break end end
+ assert(roomId==1 and adventure.board and not journey.seen[8])
  capture('test-match3');solveBoard();assert(roomId==8 and journey.unlocked['1-8'])
  adventure:close();adventure:task(8);assert(journey:items()["Potter's Mitts"])
  adventure:close();changeRoom(World.opposite[side]);assert(roomId==1)
@@ -147,12 +160,37 @@ function love.load()
  for _,hit in ipairs(adventure.hits)do assert(hit.y>=0 and hit.y+hit.h<=600)end
  adventure:close();Characters.active=true;capture('test-small-characters');Characters.active=false
  Intro.begin(Characters);capture('test-small-locations');Intro.active=false
+ -- Worker tools, poses and lights must actually change between render times.
+ local NPC=require('ambient_npc');local g=love.graphics;local oldCanvas=g.getCanvas();local gallery={}
+ for frame=1,2 do
+  local canvas=g.newCanvas(1100,380);g.push('all');g.setCanvas(canvas);g.origin();g.clear(.18,.26,.27,1)
+  for n,id in ipairs({16,5,39,46})do local r=rooms[id];local x=100+(n-1)*270
+   NPC.draw(r,function()return x,260 end,3,(frame-1)*1.7)
+   V.color({1,.94,.77});g.setFont(fonts.body);g.printf(NPC.job(r),x-90,300,220,'center')
+  end
+  g.setCanvas(oldCanvas);g.pop();gallery[frame]=canvas:newImageData();gallery[frame]:encode('png','test-workers-'..frame..'.png')
+ end
+ assert(gallery[1]:getString()~=gallery[2]:getString(),'Workers and lights did not animate')
+ -- Four distinct worlds render at 4K without altering saved discoveries.
+ local oldSeen=journey.seen;local oldRoom=roomId;local oldZoom=Tabletop.zoom;journey.seen={}
+ for level=1,4 do
+  for slot=1,15 do journey.seen[Campaign.id(level,slot)]=true end
+  teleport(Campaign.id(level,4));Tabletop.zoom=.56;Tabletop.cx,Tabletop.cy=19,19;Tabletop.reveals={}
+  capture('test-world-'..level..'-4k',3840,2160)
+  assert(Tabletop.frame.scale>1 and #require('terrain_shape').outline(rooms[roomId])>20)
+ end
+ journey.seen=oldSeen;teleport(oldRoom);Tabletop.zoom=oldZoom
+ -- Resume preserves a valid position beyond the former square room boundary.
+ local edgeY=rooms[oldRoom].height/2+1.5
+ assert(Navigation.clear(rooms[oldRoom],-.35,edgeY));player.x=-.35;player.y=edgeY;assert(saveJourney())
+ start(false);adventure.panel.buttons[1][2]();assert(player.x==-.35 and player.y==edgeY)
+ adventure:close()
  -- Check all origin-specific cinematic rendering and separate campaigns.
  for _,origin in ipairs({'City','Suburb','Midwest'})do
   Intro.begin(Characters);Intro.selected=({City=1,Suburb=2,Midwest=3})[origin];Intro.choose();Intro.time=2
   capture('test-intro-'..origin);Intro.active=false
  end
- print('LOVE INTEGRATION PASS: deferred splash, creation, introduction, first-time passage, all 32 tasks, complete rescue, failure retention, resume and 800x600 rendering.')
+ print('LOVE INTEGRATION PASS: deferred splash, creation, introduction, first-time passage, all 32 tasks, complete rescue, failure retention, resume, click navigation, working NPCs, 800x600 and 4K rendering.')
  print('Screenshots: '..love.filesystem.getSaveDirectory())
  campaignStarted=false;love.event.quit()
 end

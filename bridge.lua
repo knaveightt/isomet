@@ -1,9 +1,25 @@
 -- Beveled plank decks with grain, stout posts and curved rope handrails.
 local V=require('visual')
 local B={}
-function B.draw(a,b,c,d,scale,opened)
+function B.draw(a,b,c,d,scale,opened,stone)
  local g=love.graphics;local dx,dy=c-a,d-b;local length=math.sqrt(dx*dx+dy*dy);if length<1 then return end
  local ux,uy=dx/length,dy/length;local nx,ny=-uy,ux;local half=15*scale
+ if stone then
+  local half=19*scale
+  V.color({.27,.34,.34},.65);g.polygon('fill',a-nx*half,b-ny*half,c-nx*half,d-ny*half,c+nx*half,d+ny*half+18*scale,a+nx*half,b+ny*half+18*scale)
+  local count=math.max(2,math.ceil(length/(16*scale)))
+  for i=0,count-1 do local q,r=i/count,(i+1)/count;local ax,ay=a+dx*q,b+dy*q;local bx,by=a+dx*r,b+dy*r
+   V.color(opened and {.81+i%2*.05,.80+i%2*.04,.67+i%2*.04}or{.58,.63,.60});g.polygon('fill',ax-nx*half,ay-ny*half,bx-nx*half,by-ny*half,bx+nx*half,by+ny*half,ax+nx*half,ay+ny*half)
+   V.color({.42,.46,.40},.6);g.setLineWidth(scale);g.line(ax-nx*half,ay-ny*half,ax+nx*half,ay+ny*half)
+  end
+  for _,sign in ipairs({-1,1})do
+   for i=0,count do local q=i/count;local xx,yy=a+dx*q+nx*half*sign,b+dy*q+ny*half*sign
+    V.color({.65,.68,.61});g.rectangle('fill',xx-4*scale,yy-15*scale,8*scale,15*scale,2*scale,2*scale)
+    V.color({.94,.92,.80});g.rectangle('fill',xx-5*scale,yy-18*scale,10*scale,4*scale,2*scale,2*scale)
+   end
+  end
+  g.setLineWidth(1);return
+ end
  g.setLineWidth(34*scale);g.setColor(.21,.31,.27,.12);g.line(a,b+11*scale,c,d+11*scale)
  g.setColor(.45,.28,.16);g.polygon('fill',a+nx*half,b+ny*half,c+nx*half,d+ny*half,c+nx*half,d+ny*half+6*scale,a+nx*half,b+ny*half+6*scale)
  local count=math.max(1,math.ceil(length/(9*scale)))

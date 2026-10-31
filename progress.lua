@@ -117,7 +117,7 @@ function P.decode(text)
  assert(p.profile.variant%1==0 and p.profile.variant>=1 and p.profile.variant<=8 and p.profile.companion%1==0 and p.profile.companion>=1 and p.profile.companion<=8,'Invalid appearance')
  assert(Campaign.origins[p.profile.origin] and #p.profile.name>0 and #p.profile.name<=100,'Invalid profile')
  assert(p.finalStep%1==0 and p.finalStep>=0 and p.finalStep<=4,'Invalid finale checkpoint')
- if p.x then assert(p.y and p.x==p.x and p.y==p.y and p.x>=0 and p.x<=16 and p.y>=0 and p.y<=16,'Invalid position') end
+ if p.x then assert(p.y and p.x==p.x and p.y==p.y and p.x>=-3 and p.x<=19 and p.y>=-3 and p.y<=19,'Invalid position') end
  for _,k in ipairs({'cells','bright','freeCellAt','practice','capacity'})do assert(p[k]==p[k] and p[k]>=0 and p[k]<1e12,'Invalid supplies')end
  assert(p.capacity>=30 and p.capacity%1==0 and p.cells%1==0 and p.practice%1==0,'Invalid quantities')
  return p

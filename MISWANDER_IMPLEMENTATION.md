@@ -175,3 +175,10 @@ Validation includes fixed special-creation/effect fixtures, invalid-swap rollbac
 ### Puzzle rendering and effects
 
 `puzzle_art.lua` replaces the procedural gem renderer with cached `cartoon.lua` atlas sprites. `puzzle_fx.lua` reads the presentation-only `board.events` snapshots. Rule resolution stays synchronous and independent of frame rate; effects never alter counts or use gameplay randomness. `adventure.lua` holds a brief `boardResolving` input lock and delays `finishBoard()` until effects end, preventing an earned special or final winning burst from disappearing immediately. Opening help pauses presentation time, while retreat clears it. The integration test exercises real selection callbacks and asserts that a winning callback runs once after feedback, with no extra swaps accepted during the lock.
+
+
+## Flowing landscape and ambient workers
+
+The current board redesign is documented in [WORLD_REDESIGN.md](WORLD_REDESIGN.md). Stable room IDs, campaign dependencies, lives and match-three rules remain; `terrain_shape.lua` gives each area an organic boundary, and curved shared terrain uses the same control path as crossing animation. `navigation.lua` adds safe click movement. `environment.lua` owns textured ground/cliffs and scenic weather, while `ambient_npc.lua` supplies task gestures, fishing, trading and ice work with slow light pulses. The sixty landmark source regions are each assigned once, with source prompts and actual resolutions recorded in `assets/cartoon/WORLD_ART.md`.
+
+Saved positions can now fall in the organic margins (including slightly negative local coordinates). Version-1 decoding retains finite bounds of −3 through 19; actual movement and resumed placement validate against the current area's geometry and solid props. Existing saves load unchanged. LÖVE test captures cover resized windows, four 3840×2160 landscapes, safe click approaches, worker animation and resumed margin positions.

@@ -9,6 +9,13 @@ V.biomes={
 function V.color(c,a)love.graphics.setColor(c[1],c[2],c[3],a or c[4] or 1)end
 function V.shade(c,v)return {math.min(1,c[1]*v),math.min(1,c[2]*v),math.min(1,c[3]*v)}end
 -- Shared beveled controls: decoration stays inside the established hit regions.
+function V.overlay(x,y,w,h)
+ local g=love.graphics
+ V.color({.09,.13,.14},.25);g.rectangle('fill',x-2,y+3,w+4,h+3,14,14)
+ V.color({.82,.68,.43},.9);g.rectangle('fill',x-1,y-1,w+2,h+2,13,13)
+ V.color({.14,.20,.19},.91);g.rectangle('fill',x,y,w,h,12,12)
+ V.color({.98,.87,.61},.18);g.rectangle('fill',x+7,y+3,w-14,1,1,1)
+end
 function V.card(x,y,w,h,selected)
  local g=love.graphics;local r=math.min(18,h/3)
  for i=3,1,-1 do V.color({.12,.28,.30},.035*i);g.rectangle('fill',x-i,y+3+i,w+i*2,h+i*2,r,r)end

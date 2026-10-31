@@ -8,6 +8,8 @@ local Scenery=require('scenery')
 local V=require('visual')
 local Tabletop=require('tabletop')
 local Savefile=require('savefile')
+local Navigation=require('navigation')
+local walkPath,walkAction
 local journey,adventure
 local ready=false
 local splashTime=0
@@ -28,6 +30,7 @@ local function saveWorld(world)
   assert(love.filesystem.write('miswander-world.txt',tostring(#world)..'\n'))
 end
 local function teleport(id,animate)
+  walkPath=nil;walkAction=nil
   local from=roomId;local old={x=player.x,y=player.y}
   roomId=id; local r=rooms[id]; player.x=r.width/2;player.y=r.height/2;fade=1
   if animate and rooms[from].level==r.level then
@@ -77,7 +80,7 @@ local function start(fresh)
     adventure:show('Welcome back to Miswander','Your progress, discoveries, quest items and unlocked passages are saved.',{
       {'Continue journey',function()
         local x,y=journey.x,journey.y;local id=journey.room
-        resumeJourney();if x and y then player.x=math.max(.4,math.min(rooms[id].width-.4,x));player.y=math.max(.4,math.min(rooms[id].height-.4,y))end
+        resumeJourney();if x and y and Navigation.clear(rooms[id],x,y)then player.x=x;player.y=y end
         adventure:close()
       end},
       {'New journey',function()
@@ -93,13 +96,14 @@ local function setup()
 end
 function love.load()
   love.graphics.setDefaultFilter('linear','linear')
-  fonts.title=love.graphics.newFont('assets/fonts/OpenSans-ExtraBold.ttf',26);fonts.body=love.graphics.newFont('assets/fonts/OpenSans-Semibold.ttf',16);fonts.small=love.graphics.newFont('assets/fonts/OpenSans-Semibold.ttf',12)
+  fonts.title=love.graphics.newFont('assets/fonts/OpenSans-ExtraBold.ttf',26,'normal',3);fonts.body=love.graphics.newFont('assets/fonts/OpenSans-Semibold.ttf',16,'normal',3);fonts.small=love.graphics.newFont('assets/fonts/OpenSans-Semibold.ttf',12,'normal',3)
   love.math.setRandomSeed(os.time())
   -- The startup diorama shares the same original isometric art as the game.
 end
 local function color(r,g,b,a)love.graphics.setColor(r,g,b,a or 1)end
 local function gatePosition(r,side)return Tabletop.gate(r,side)end
 changeRoom=function(side)
+  walkPath=nil;walkAction=nil
   local target=rooms[roomId].visualExits[side]; if not target then return end
   local from=roomId;local old={x=player.x,y=player.y}
   roomId=target; local r=rooms[roomId]; local entry=World.opposite[side]
@@ -117,7 +121,7 @@ function love.update(dt)
   if os.getenv('ISOMET_SMOKE') and time>3.6 and not love._smokeCaptured then love.graphics.captureScreenshot('smoke.png'); love._smokeCaptured=true end
   if errorText then return end
   if adventure and campaignStarted then adventure:update(dt);Tabletop.update(dt,rooms,roomId,player,journey) end
-  if adventure and adventure:active() then return end
+  if adventure and adventure:active() then walkPath=nil;walkAction=nil;return end
   if Characters.active then return end
   if Intro.active then
     if Intro.update(dt) then
@@ -139,13 +143,17 @@ function love.update(dt)
     local tx,ty=love.mouse.getPosition();local touches=love.touch.getTouches();if touches[1] then tx,ty=love.touch.getPosition(touches[1])end
     for _,hit in ipairs(hudHits)do if hit.dx and tx>=hit.x and tx<=hit.x+hit.w and ty>=hit.y and ty<=hit.y+hit.h then dx,dy=hit.dx,hit.dy end end
   end
-  if dx~=0 and dy~=0 then dx=dx*.7071; dy=dy*.7071 end
-  local r=rooms[roomId]; local speed=love.keyboard.isDown('lshift','rshift') and 4.6 or 2.9
-  local function clear(x,y)
-    if Scenery.blocked(r,x,y)then return false end
-    for _,p in ipairs(r.pillars) do if math.abs(x-p.x)<.48 and math.abs(y-p.y)<.48 then return false end end
-    return true
+  if dx~=0 or dy~=0 then walkPath=nil;walkAction=nil end
+  local r=rooms[roomId];local speed=love.keyboard.isDown('lshift','rshift')and 4.6 or 2.9
+  if walkPath then
+    local target=walkPath[1];local vx,vy=target.x-player.x,target.y-player.y;local distance=math.sqrt(vx*vx+vy*vy)
+    if distance<=speed*dt then
+      player.x,player.y=target.x,target.y;table.remove(walkPath,1)
+      if #walkPath==0 then local action=walkAction;walkPath=nil;walkAction=nil;if action then action();return end end
+    else dx,dy=vx/distance,vy/distance end
   end
+  if dx~=0 and dy~=0 and not walkPath then dx=dx*.7071; dy=dy*.7071 end
+  local function clear(x,y)return Navigation.clear(r,x,y)end
   local nx,ny=player.x+dx*dt*speed,player.y+dy*dt*speed
   if clear(nx,player.y) then player.x=nx end
   if clear(player.x,ny) then player.y=ny end
@@ -158,7 +166,7 @@ function love.update(dt)
     -- Step inward before presenting a board so cancelling never reopens it immediately.
     player.x=math.max(.8,math.min(r.width-.8,player.x));player.y=math.max(.8,math.min(r.height-.8,player.y))
     adventure:enter(side,r.visualExits[side])
-  else player.x=math.max(.35,math.min(r.width-.35,player.x));player.y=math.max(.35,math.min(r.height-.35,player.y))end
+  end
 end
 function love.textinput(text)
   if ready and Characters.active and not errorText and not (adventure and adventure:active()) then Characters.textinput(text) end
@@ -193,6 +201,22 @@ function love.mousepressed(x,y,button)
   if adventure and adventure:active() then adventure:mousepressed(x,y,button);return end
   if campaignStarted and not Intro.active and not Characters.active and button==1 then
     for _,hit in ipairs(hudHits)do if hit.action and x>=hit.x and x<=hit.x+hit.w and y>=hit.y and y<=hit.y+hit.h then hit.action();return end end
+    for _,hit in ipairs(hudHits)do if hit.dx and x>=hit.x and x<=hit.x+hit.w and y>=hit.y and y<=hit.y+hit.h then walkPath=nil;walkAction=nil;return end end
+    if Tabletop.walk then return end
+    local pick=Tabletop.pick and Tabletop.pick(x,y,rooms,roomId,journey)
+    if pick then
+      local r=rooms[roomId];local tx,ty=pick.x,pick.y;local action
+      if pick.side then
+        tx,ty=gatePosition(r,pick.side);tx=math.max(.8,math.min(r.width-.8,tx));ty=math.max(.8,math.min(r.height-.8,ty))
+        local side,target=pick.side,pick.target;action=function()adventure:enter(side,target)end
+      elseif pick.inspect then
+        tx,ty=r.width/2,r.height/2;action=function()adventure:inspect()end
+      end
+      walkPath=Navigation.path(r,player.x,player.y,tx,ty);walkAction=walkPath and action or nil
+      if not walkPath then adventure.toast='Choose a clear path in this room, or a connected doorway.';adventure.toastTime=2 end
+    end
+    return
+
   end
   if Intro.active and not errorText then Intro.mousepressed(x,y,button); return end
   if Characters.active and not errorText and Characters.mousepressed(x,y,button) then character=Characters.images[Characters.selected]; Intro.begin(Characters) end
@@ -245,32 +269,41 @@ function love.draw()
   if Characters.active then Characters.draw(fonts,time); return end
   if Intro.active then Intro.draw(fonts); return end
   local r=Tabletop.draw(rooms,roomId,player,journey,character,time,fonts)
-  V.card(20,16,w-40,99,false)
-  V.color({.84,.88,.67});g.circle('fill',60,64,32)
-  require('cartoon').traveler(character,60,99,61,70)
-  V.color(V.teal);g.setFont(fonts.small);g.print('MISWANDER  /  '..Campaign.worlds[r.level].name:upper(),104,29)
-  V.color(V.ink);g.setFont(fonts.title);local heading=Characters.name..'  /  '..r.name
-  local hs=math.min(1,(w-310)/fonts.title:getWidth(heading))
-  g.print(heading,104,53,0,hs,hs)
-  for i=1,5 do V.heart(w-164+(i-1)*28,44,i<=journey.hearts)end
-  g.setFont(fonts.small);V.color(V.muted)
+  local uiScale=math.max(1,math.min(w/1200,h/800));g.push();g.scale(uiScale);w=w/uiScale;h=h/uiScale
+  local headerW=math.min(420,w*.54)
+  V.overlay(16,14,headerW,88)
+  require('cartoon').traveler(character,50,92,48,67)
+  g.setFont(fonts.small);V.color({.95,.84,.58});g.print('MISWANDER · '..Campaign.worlds[r.level].name,84,23)
+  g.setFont(fonts.title);local heading=r.name;local hs=math.min(.78,(headerW-84)/fonts.title:getWidth(heading))
+  V.color({1,.97,.86});g.print(heading,84,44,0,hs,hs)
+  g.setFont(fonts.small);V.color({.88,.91,.81});g.print(Characters.name,85,77)
+  V.overlay(w-190,14,174,76)
+  for i=1,5 do V.heart(w-165+(i-1)*29,35,i<=journey.hearts)end
+  g.setFont(fonts.small);V.color({1,.94,.77})
   local lives='Hearts '..journey.hearts..' / 5'
   if journey.hearts<5 then local wait=journey:wait();lives=string.format('Next heart %02d:%02d',math.floor(wait/60),wait%60)end
-  g.printf(lives,w-200,72,160,'center')
-  g.setFont(fonts.small);local labels={}
-  for _,side in ipairs(sides)do local id=r.visualExits[side];if id then local _,_,d=Campaign.info(id);labels[#labels+1]=side..': '..(journey.seen[id]and rooms[id].name or(d and d[1]or'Unexplored passage'))..(journey:locked(id) and ' [sealed]' or '')end end
-  V.card(73,h-143,w-146,48,false);V.color(V.ink);g.printf(table.concat(labels,'   /   '),80,h-135,w-160,'center')
+  g.printf(lives,w-186,60,166,'center')
   hudHits={}
   local buttons={{'Inspect',function()adventure:inspect()end},{'Satchel',function()adventure:satchel()end},{'Notebook',function()adventure:notebook()end},{'Map',function()adventure:map()end},{'Pip',function()adventure:hint()end}}
-  local bw=math.floor(math.min(140,(w-210)/5));local left=math.max(150,math.floor((w-bw*5-24)/2))
-  for i,b in ipairs(buttons)do local x=left+(i-1)*(bw+6);local y=h-77
-    V.button(x,y,bw,42,false);V.icon(b[1],x+8,y+10,1);V.buttonText(b[1],x+24,y,bw-24,42,fonts.body)
-    hudHits[#hudHits+1]={x=x,y=y,w=bw,h=42,action=b[2]}
+  local bw=math.floor(math.min(100,(w-185)/5))
+  for i,b in ipairs(buttons)do local x=18+(i-1)*(bw+8);local y=h-81
+    V.overlay(x,y,bw,59);V.icon(b[1],x+bw/2-14,y+5,1.35)
+    V.color({1,.96,.82});g.setFont(fonts.small);g.printf(b[1],x,y+38,bw,'center')
+    hudHits[#hudHits+1]={x=x,y=y,w=bw,h=59,action=b[2]}
   end
-  -- Mouse/touch movement pad; desktop arrow/WASD controls remain available.
-  local pad={{'NE',0,-1,50,h-106},{'NW',-1,0,6,h-62},{'SE',1,0,94,h-62},{'SW',0,1,50,h-18}}
-  for _,b in ipairs(pad)do local y=math.min(h-37,b[5]);V.button(b[4],y,42,34,false);V.buttonText(b[1],b[4],y,42,34,fonts.small);hudHits[#hudHits+1]={x=b[4],y=y,w=42,h=34,dx=b[2],dy=b[3]}end
-  V.color(V.ink);g.setFont(fonts.small);g.printf('Move: arrows / WASD · E: inspect · Wheel / +/-: zoom · Right-drag: pan · F: follow',150,h-21,w-170,'center')
+  local pad={{'NE',0,-1,w-89,h-118},{'NW',-1,0,w-133,h-74},{'SE',1,0,w-45,h-74},{'SW',0,1,w-89,h-37}}
+  for _,b in ipairs(pad)do V.overlay(b[4],b[5],38,31);V.buttonText(b[1],b[4],b[5],38,31,fonts.small);hudHits[#hudHits+1]={x=b[4],y=b[5],w=38,h=31,dx=b[2],dy=b[3]}end
+  for _,hit in ipairs(hudHits)do hit.x=hit.x*uiScale;hit.y=hit.y*uiScale;hit.w=hit.w*uiScale;hit.h=hit.h*uiScale end
+  -- The destination hint appears only while a doorway is hovered.
+  local mx,my=love.mouse.getPosition();local hover=Tabletop.pick(mx,my,rooms,roomId,journey)
+  if hover and hover.side then
+    local target=hover.target;local _,_,door=Campaign.info(target)
+    local label=journey.seen[target]and rooms[target].name or(door and door[1]or'Unexplored passage')
+    label=label..(journey:locked(target)and ' · Needs a quest item'or(journey.unlocked[Progress.edge(roomId,target)]and ' · Open passage'or' · Match-three to unlock'))
+    local tw=math.min(550,w-220);V.overlay((w-tw)/2,h-127,tw,32);V.color({1,.95,.77});g.setFont(fonts.small);g.printf(label,(w-tw)/2+8,h-119,tw-16,'center')
+  end
+  V.color({1,.97,.87},.85);g.setFont(fonts.small);g.printf('Click a path or doorway · Arrows / WASD · Wheel: zoom · Right-drag: pan',20,h-17,w-185,'left')
   if saveStatus~='' then color(1,.6,.45);g.printf(saveStatus,20,118,w-40,'center')end
   if adventure.toastTime and adventure.toastTime>0 then V.card(w/2-240,127,480,30,false);V.color(V.teal);g.printf(adventure.toast,w/2-230,134,460,'center')end
+  g.pop()
 end

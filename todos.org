@@ -1,5 +1,12 @@
-* General TODO
+* General TODOs
 ** TODO Maze as one whole board with 
 ** TODO Intro Graphics / Dialogs / Characters
 ** TODO Better Text Boxes
 ** TODO Sound / Music
+** TODO Clickable Icons
+- inventory
+- doors completed icon
+** TODO Emphasis on Mobile Controls
+** TODO Emphasis on mobile mechanics (powercells/energy)
+* Music
+** [[https://elements.envato.com/mystery-in-the-forest-GJXRSVT][Mystery in the Forest]]

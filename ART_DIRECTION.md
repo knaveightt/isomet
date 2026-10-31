@@ -1,5 +1,7 @@
 # Miswander — bright tabletop art and exploration
 
+The current board uses flowing terrain, sixty distinct landmarks and working NPCs. See [WORLD_REDESIGN.md](WORLD_REDESIGN.md) for the latest world layout, controls, dynamics and 4K previews, and [WORLD_ART.md](assets/cartoon/WORLD_ART.md) for asset provenance. The earlier presentation passes below remain as development context.
+
 ## Current illustrated cartoon direction
 
 The current world uses high-resolution RGBA illustrations, replacing the earlier minimal procedural/pixel room assets. Rounded roofs, soft baked lighting, textured stone and wood, lush foliage and larger expressive travelers move Miswander toward the cheerful mobile-farming/adventure visual genre requested by the user. Township, Hay Day and Farm City inform the reference direction; no images from those games are imported.

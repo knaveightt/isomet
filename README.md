@@ -4,7 +4,9 @@ A Lua / LÖVE 11.5 exploration-and-puzzle prototype. Follow a loved one into a r
 
 This project contains the **2D LÖVE game**.
 
-![Illustrated cartoon tabletop preview](docs/images/miswander-illustrated-tabletop.png)
+![Flowing world preview](docs/images/miswander-flowing-world.png)
+
+The four worlds now use irregular connected terrain, curved pathways, sixty distinct scene landmarks, working NPCs and slow pulsing lights. Click paths or doorways to walk. See [the world redesign guide and 4K previews](WORLD_REDESIGN.md).
 
 ## Launch
 
@@ -18,7 +20,7 @@ love .
 
 The Miswander artwork appears for three seconds before world and character setup. Choose a traveler and name, then City, Suburb, or Midwest. The origin-specific pixel introduction leads into the refuge. Subsequent launches offer **Continue journey** or **New journey**.
 
-The rooms, buildings, greenery, guardians and eight travelers now use high-resolution illustrated cartoon artwork with soft shading, rounded forms and saturated colors. Textured plank bridges have rope rails and posts. The splash uses the same artwork; parchment menus and puzzle controls retain their bright theme. The earlier PDF title extraction remains archived in `assets/` and is no longer used by the game. No additional game libraries are required. Generation provenance and prompts are in [assets/cartoon/README.md](assets/cartoon/README.md).
+The world uses illustrated scene landmarks, textured ground and cliff meshes, cutaway environments and distinct area silhouettes. Broad paths join most areas; selected ravines retain timber or stone bridges. Workers animate their tools and poses while lanterns, furnace glows, smoke and weather move gently. The splash uses the same artwork; parchment menus and puzzle controls retain their bright theme. The earlier PDF title extraction remains archived in `assets/` and is no longer used by the game. No additional game libraries are required. Generation provenance and prompts are in [assets/cartoon/README.md](assets/cartoon/README.md).
 
 ## Explore the tabletop maze
 
@@ -33,7 +35,7 @@ Each environment has its own connected tabletop; story exits still lead to the n
 
 ## Unseal passages
 
-Walk into an arch to try its passage. **The first crossing requires five match-three lines in eighteen neighboring swaps.** Tap two adjacent pieces, or use arrows and Space/Enter to select them. Match three or more horizontally or vertically. Cascades count, and dead boards reshuffle for free. A neighboring swap uses one attempt even if it makes no line; the pieces then return to their original positions. Selecting a distant piece simply changes selection.
+Walk into an arch to try its passage. **The first crossing has a match-three objective: make matches, collect a color, or break clay seals within the displayed swap budget.** Tap two adjacent pieces, or use arrows and Space/Enter to select them. Match three or more horizontally or vertically. Cascades count, and dead boards reshuffle for free. A neighboring swap uses one attempt even if it makes no line; the pieces then return to their original positions. Selecting a distant piece simply changes selection.
 
 A successful passage unlock is permanent in both directions. Backtracking never requires replaying its board. Marked task rooms have their own inspect action: discover tools, use them at mechanisms, read companion traces, or face a warned timing challenge. Some mechanisms have an additional match-three task. Missing items cost nothing, and retreat is free.
 
@@ -43,6 +45,7 @@ Arches show their destinations or marking names at the bottom of the screen; gol
 
 | Action | Keyboard | Mouse / touch |
 | --- | --- | --- |
+| Walk to a path / approach a doorway | — | Click a clear path, doorway, or adjacent discovered area |
 | Move NE / SE / SW / NW | Up / Right / Down / Left, or W / D / S / A | Hold a direction on the bottom-left pad |
 | Run | Shift | — |
 | Inspect current room | E | Inspect button |
@@ -120,6 +123,7 @@ lua tests/miswander_test.lua
 lua tests/savefile_test.lua
 luajit tests/miswander_test.lua
 lua tests/tabletop_test.lua
+lua tests/navigation_test.lua
 python3 tests/assets_test.py
 python3 tests/run_love_tests.py
 ```
