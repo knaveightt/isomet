@@ -93,7 +93,7 @@ local function setup()
 end
 function love.load()
   love.graphics.setDefaultFilter('linear','linear')
-  fonts.title=love.graphics.newFont(26);fonts.body=love.graphics.newFont(16);fonts.small=love.graphics.newFont(12)
+  fonts.title=love.graphics.newFont('assets/fonts/OpenSans-ExtraBold.ttf',26);fonts.body=love.graphics.newFont('assets/fonts/OpenSans-Semibold.ttf',16);fonts.small=love.graphics.newFont('assets/fonts/OpenSans-Semibold.ttf',12)
   love.math.setRandomSeed(os.time())
   -- The startup diorama shares the same original isometric art as the game.
 end
@@ -246,13 +246,17 @@ function love.draw()
   if Intro.active then Intro.draw(fonts); return end
   local r=Tabletop.draw(rooms,roomId,player,journey,character,time,fonts)
   V.card(20,16,w-40,99,false)
-  V.color(V.teal);g.setFont(fonts.small);g.print('M I S W A N D E R  /  '..Campaign.worlds[r.level].name:upper(),32,25)
+  V.color({.84,.88,.67});g.circle('fill',60,64,32)
+  require('cartoon').traveler(character,60,99,61,70)
+  V.color(V.teal);g.setFont(fonts.small);g.print('MISWANDER  /  '..Campaign.worlds[r.level].name:upper(),104,29)
   V.color(V.ink);g.setFont(fonts.title);local heading=Characters.name..'  /  '..r.name
-  g.print(heading,32,55,0,math.min(1,(w-64)/fonts.title:getWidth(heading)),1)
-  g.setFont(fonts.body);V.color({.68,.32,.24})
+  local hs=math.min(1,(w-310)/fonts.title:getWidth(heading))
+  g.print(heading,104,53,0,hs,hs)
+  for i=1,5 do V.heart(w-164+(i-1)*28,44,i<=journey.hearts)end
+  g.setFont(fonts.small);V.color(V.muted)
   local lives='Hearts '..journey.hearts..' / 5'
-  if journey.hearts<5 then local wait=journey:wait();lives=lives..string.format(' · Next %02d:%02d',math.floor(wait/60),wait%60)end
-  g.printf(lives,30,92,w-60,'right')
+  if journey.hearts<5 then local wait=journey:wait();lives=string.format('Next heart %02d:%02d',math.floor(wait/60),wait%60)end
+  g.printf(lives,w-200,72,160,'center')
   g.setFont(fonts.small);local labels={}
   for _,side in ipairs(sides)do local id=r.visualExits[side];if id then local _,_,d=Campaign.info(id);labels[#labels+1]=side..': '..(journey.seen[id]and rooms[id].name or(d and d[1]or'Unexplored passage'))..(journey:locked(id) and ' [sealed]' or '')end end
   V.card(73,h-143,w-146,48,false);V.color(V.ink);g.printf(table.concat(labels,'   /   '),80,h-135,w-160,'center')
@@ -260,12 +264,12 @@ function love.draw()
   local buttons={{'Inspect',function()adventure:inspect()end},{'Satchel',function()adventure:satchel()end},{'Notebook',function()adventure:notebook()end},{'Map',function()adventure:map()end},{'Pip',function()adventure:hint()end}}
   local bw=math.floor(math.min(140,(w-210)/5));local left=math.max(150,math.floor((w-bw*5-24)/2))
   for i,b in ipairs(buttons)do local x=left+(i-1)*(bw+6);local y=h-77
-    V.button(x,y,bw,42,false);V.icon(b[1],x+8,y+10,1);color(1,1,.94);g.setFont(fonts.body);g.printf(b[1],x+28,y+12,bw-30,'center')
+    V.button(x,y,bw,42,false);V.icon(b[1],x+8,y+10,1);V.buttonText(b[1],x+24,y,bw-24,42,fonts.body)
     hudHits[#hudHits+1]={x=x,y=y,w=bw,h=42,action=b[2]}
   end
   -- Mouse/touch movement pad; desktop arrow/WASD controls remain available.
   local pad={{'NE',0,-1,50,h-106},{'NW',-1,0,6,h-62},{'SE',1,0,94,h-62},{'SW',0,1,50,h-18}}
-  for _,b in ipairs(pad)do local y=math.min(h-37,b[5]);V.button(b[4],y,42,34,false);color(1,1,.94);g.setFont(fonts.small);g.printf(b[1],b[4],y+10,42,'center');hudHits[#hudHits+1]={x=b[4],y=y,w=42,h=34,dx=b[2],dy=b[3]}end
+  for _,b in ipairs(pad)do local y=math.min(h-37,b[5]);V.button(b[4],y,42,34,false);V.buttonText(b[1],b[4],y,42,34,fonts.small);hudHits[#hudHits+1]={x=b[4],y=y,w=42,h=34,dx=b[2],dy=b[3]}end
   V.color(V.ink);g.setFont(fonts.small);g.printf('Move: arrows / WASD · E: inspect · Wheel / +/-: zoom · Right-drag: pan · F: follow',150,h-21,w-170,'center')
   if saveStatus~='' then color(1,.6,.45);g.printf(saveStatus,20,118,w-40,'center')end
   if adventure.toastTime and adventure.toastTime>0 then V.card(w/2-240,127,480,30,false);V.color(V.teal);g.printf(adventure.toast,w/2-230,134,460,'center')end

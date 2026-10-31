@@ -325,25 +325,26 @@ function A:draw(fonts)
  V.card(16,16,w-32,h-32,false)
  if self.panel then
   local left=math.max(24,(w-850)/2);local width=w-left*2
-  g.setFont(fonts.title);V.color(V.teal);g.printf(self.panel.title,left,35,width,'left')
+  V.heading(self.panel.title,left,31,width,fonts.title)
   local buttonHeight=44;local bottom=h-30;local buttonsY=bottom-#self.panel.buttons*(buttonHeight+8)
   local textTop=90;local textHeight=math.max(60,buttonsY-textTop-24)
+  V.color({.99,.97,.88});g.rectangle('fill',left-8,textTop-6,width+16,textHeight+12,10,10)
   g.setFont(fonts.body);local _,lines=fonts.body:getWrap(self.panel.text,width-12);local maxScroll=math.max(0,#lines*fonts.body:getHeight()*1.2-textHeight)
   self.scroll=math.min(self.scroll,maxScroll)
   g.setScissor(left,textTop,width,textHeight);V.color(V.ink);g.printf(self.panel.text,left,textTop-self.scroll,width-12,'left');g.setScissor()
   if maxScroll>0 then g.setFont(fonts.small);V.color(V.muted);g.printf('Scroll / Page Up & Down to read more',left,buttonsY-20,width,'right') end
   for i,button in ipairs(self.panel.buttons) do
    local y=buttonsY+(i-1)*(buttonHeight+8);V.button(left,y,width,buttonHeight,i==self.choice)
-   g.setColor(1,1,.94);g.setFont(fonts.body);g.printf(button[1],left+10,y+14,width-20,'center')
+   V.buttonText(button[1],left,y,width,buttonHeight,fonts.body)
    self.hits[#self.hits+1]={x=left,y=y,w=width,h=buttonHeight,action=button[2]}
   end
  elseif self.board then
   local b=self.board;local size=math.floor(math.min(62,(h-250)/7,(w-80)/7));local left=math.floor((w-size*7)/2);local top=130
   self.boardLayout={left=left,top=top,size=size}
   V.card(left-8,top-8,size*7+16,size*7+16,false)
-  g.setFont(fonts.title);V.color(V.teal);g.printf(self.boardTitle,20,24,w-40,'center')
+  V.heading(self.boardTitle,20,16,w-40,fonts.title)
   g.setFont(fonts.body);V.color(V.ink);g.printf('Matches '..math.min(b.count,b.goal)..' / '..b.goal..'     Swaps '..b.moves..'     Hearts '..self.p.hearts..' / 5',0,68,w,'center')
-  local filled=math.min(1,b.count/b.goal);g.setColor(.79,.81,.66);g.rectangle('fill',left,103,size*7,7);g.setColor(.33,.70,.44);g.rectangle('fill',left,103,size*7*filled,7)
+  V.progress(left,103,size*7,12,b.count/b.goal)
   for y=1,7 do for x=1,7 do local xx,yy=left+(x-1)*size,top+(y-1)*size
    g.setColor((x+y)%2==0 and .88 or .81,.88,.74);g.rectangle('fill',xx+1,yy+1,size-2,size-2,4,4)
    gem(g,xx,yy,size,b.board[(y-1)*7+x])
@@ -354,17 +355,17 @@ function A:draw(fonts)
   g.setFont(fonts.body);V.color(V.ink);g.printf(b.message,24,top+size*7+17,w-48,'center')
   g.setFont(fonts.small);V.color(V.muted);g.printf('Failure loses 1 heart. Retreat is free. Successful passage unlocks persist.',20,h-80,w-40,'center')
   V.color(V.muted);g.printf('Tap two neighbors · Arrows + Space/Enter · 18 swaps to reach the goal · Esc: retreat',20,h-58,w-40,'center')
-  self.hits[1]={x=w/2-110,y=h-36,w=220,h=28,action=function()self:retreat()end};g.printf('Return safely to maze',0,h-30,w,'center')
+  self.hits[1]={x=w/2-110,y=h-36,w=220,h=28,action=function()self:retreat()end};V.button(w/2-110,h-36,220,28,false);V.buttonText('Return safely to maze',w/2-110,h-36,220,28,fonts.small)
  elseif self.timing then
   local task=self.timing;local l,_,d=Campaign.info(task.id);local phase=(task.time/(task.assist and 5 or 3.6))%1;local safe=phase<.48
-  g.setFont(fonts.title);V.color(V.teal);g.printf(d[2],20,60,w-40,'center')
+  V.heading(d[2],20,50,w-40,fonts.title)
   g.setFont(fonts.body);V.color(V.ink);g.printf(Campaign.worlds[l].warning..'\n\n'..(d[3]=='guardian' and 'Seals cooled: ' or 'Safe crossings: ')..task.cleared..' / 3',70,130,w-140,'center')
   g.setFont(fonts.small);V.color(V.muted);g.printf('Space / Enter: cross or strike · P: slower assist · Esc: retreat',30,220,w-60,'center')
-  local left,width=80,w-160;g.setColor(.26,.65,.78);g.rectangle('fill',left,h/2,width*.48,30);g.setColor(.76,.29,.27);g.rectangle('fill',left+width*.48,h/2,width*.52,30)
-  g.setColor(1,1,1);g.rectangle('fill',left+width*phase-3,h/2-8,6,46)
+  local left,width=80,w-160;V.card(left-6,h/2-6,width+12,42,false);g.setColor(.26,.65,.78);g.rectangle('fill',left,h/2,width*.48,30);g.setColor(.76,.29,.27);g.rectangle('fill',left+width*.48,h/2,width*.52,30)
+  V.color({.35,.29,.18});g.rectangle('fill',left+width*phase-5,h/2-7,10,44,4,4);V.color({1,.96,.69});g.rectangle('fill',left+width*phase-3,h/2-9,6,44,3,3)
   g.setFont(fonts.title);g.setColor(safe and .15 or .71,safe and .49 or .26,safe and .53 or .20);g.printf(safe and 'SAFE — cross / strike now' or (phase<.65 and 'WARNING — stay in shelter' or 'DANGER — stay in shelter'),0,h/2+65,w,'center')
   local buttons={{'Cross / strike',function()self:strike()end},{task.assist and 'Pip assist: ON' or 'Pip assist: slower warnings',function()task.assist=not task.assist;task.time=0 end},{'Retreat safely',function()self:retreat()end}}
-  for i,b in ipairs(buttons)do local yy=h-155+(i-1)*46;V.button(w/2-230,yy,460,38,i==1);g.setColor(1,1,.94);g.setFont(fonts.body);g.printf(b[1],w/2-230,yy+10,460,'center');self.hits[i]={x=w/2-230,y=yy,w=460,h=38,action=b[2]}end
+  for i,b in ipairs(buttons)do local yy=h-155+(i-1)*46;V.button(w/2-230,yy,460,38,i==1);V.buttonText(b[1],w/2-230,yy,460,38,fonts.body);self.hits[i]={x=w/2-230,y=yy,w=460,h=38,action=b[2]}end
  end
 end
 function A:mousepressed(x,y,button)

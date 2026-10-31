@@ -96,6 +96,13 @@ function love.load()
  love.window.setMode(800,600);adventure:close();capture('test-small-maze')
  adventure:startBoard('Unseal the passage',function()end);capture('test-small-match3')
  adventure:close();adventure:task(59);capture('test-small-guardian');adventure:close()
+ -- Inspect the densest menus and setup screens at the minimum window size.
+ adventure:satchel('Materials');capture('test-small-materials')
+ adventure.panel.buttons[#adventure.panel.buttons-1][2]();capture('test-small-satchel-tabs')
+ assert(#adventure.hits==6)
+ for _,hit in ipairs(adventure.hits)do assert(hit.y>=0 and hit.y+hit.h<=600)end
+ adventure:close();Characters.active=true;capture('test-small-characters');Characters.active=false
+ Intro.begin(Characters);capture('test-small-locations');Intro.active=false
  -- Check all origin-specific cinematic rendering and separate campaigns.
  for _,origin in ipairs({'City','Suburb','Midwest'})do
   Intro.begin(Characters);Intro.selected=({City=1,Suburb=2,Midwest=3})[origin];Intro.choose();Intro.time=2

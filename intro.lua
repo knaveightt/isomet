@@ -157,7 +157,7 @@ function I.renderScene()
   rect(px-10,py-48-jump,23,14,.95,.94,.83); rect(px-1,py-34-jump,4,4,.95,.94,.83)
   g.setFont(I.font); g.setColor(.20,.16,.25); g.print('!!!',px-8,math.floor(py-46-jump))
  end
- -- Console-style caption strip and cinematic letterboxing.
+ -- Cinematic letterboxing; caption text is drawn later at window resolution.
  rect(0,0,320,12,.025,.03,.07); rect(0,163,320,17,.025,.03,.07)
  g.setFont(I.small); g.setColor(.96,.96,.88)
  local captions={'TV NIGHT. YOUR CHILD RETURNS A HIGH FIVE.','DINNER TOGETHER. THE SAME OLD JOKE.','FETCH ON THE RANCH. YOUR DOG WAGS.'}
@@ -166,34 +166,38 @@ function I.renderScene()
  elseif t>=5 and t<8 then caption=loc==1 and 'THE VOID TAKES YOUR CHILD.' or (loc==2 and 'THE VOID TAKES YOUR PARTNER.' or 'THE VOID TAKES YOUR DOG.')
  elseif t>=8 and t<9 then caption='No! Wait!'
  elseif t>=9 then caption='You follow. Whatever waits beyond.' end
- g.printf(caption:upper(),8,167,304,'center')
- g.printf(locations[loc]:upper()..' / BEFORE THE SILENCE',8,3,304,'left')
- local darkness=math.max(1-clamp(t/1.1),progress(t,11,12.5))
- rect(0,0,320,180,0,0,0,darkness)
+ I.caption=caption
 end
 function I.draw(fonts)
  local g=love.graphics
  if I.phase=='location' then
   local w,h,card,left,top=layout()
-  g.setFont(fonts.title); V.color(V.ink); g.printf('Where does your story begin?',0,top-105,w,'center')
-  g.setFont(fonts.body); V.color(V.muted); g.printf('A familiar place. An ordinary evening.',0,top-62,w,'center')
+  V.heading('Where does your story begin?',0,top-105,w,fonts.title)
+  g.setFont(fonts.body); V.color(V.muted); g.printf('A familiar place. An ordinary evening.',0,top-49,w,'center')
   for n=1,3 do
    local x=left+(n-1)*(card+16)
    V.card(x,top,card,180,n==I.selected)
    local previous=g.getCanvas(); g.setCanvas(I.canvas); g.clear(); environment(n,0); g.setCanvas(previous)
    g.setColor(1,1,1); g.draw(I.canvas,x+8,top+8,0,(card-16)/320,(card-16)/320)
    V.color(n==I.selected and V.gold or {.63,.75,.63})
-   g.setLineWidth(2); g.rectangle('line',x,top,card,180); g.setLineWidth(1)
+   if n==I.selected then V.badge(x+card-18,top+18)end
    V.color(V.ink);g.setFont(fonts.body); g.printf(locations[n],x,top+151,card,'center')
   end
   V.button(w/2-130,top+220,260,44,true)
-  g.setColor(.89,.95,.95); g.setFont(fonts.body); g.printf('Begin your story',w/2-130,top+234,260,'center')
+  V.buttonText('Begin your story',w/2-130,top+220,260,44,fonts.body)
   g.setFont(fonts.small); V.color(V.muted); g.printf('Click a place or use arrow keys · Enter to begin',0,top+289,w,'center')
  else
   local previous=g.getCanvas(); g.setCanvas(I.canvas); g.clear(); I.renderScene(); g.setCanvas(previous)
   local w,h=g.getDimensions(); local s=math.max(1,math.floor(math.min(w/320,h/180)))
   g.setColor(.025,.03,.07); g.rectangle('fill',0,0,w,h)
-  g.setColor(1,1,1); g.draw(I.canvas,math.floor((w-320*s)/2),math.floor((h-180*s)/2),0,s,s)
+  local sx,sy=math.floor((w-320*s)/2),math.floor((h-180*s)/2)
+  g.setColor(1,1,1); g.draw(I.canvas,sx,sy,0,s,s)
+  -- Captions render at window resolution instead of enlarging a tiny bitmap.
+  V.card(sx+16,sy+180*s-52,320*s-32,38,false)
+  g.setFont(fonts.body);V.color(V.ink);g.printf(I.caption or '',sx+26,sy+180*s-44,320*s-52,'center')
+  g.setFont(fonts.small);g.setColor(1,.96,.80);g.printf(locations[I.selected]..' / Before the silence',sx+16,sy+6,320*s-32,'left')
+  local darkness=math.max(1-clamp(I.time/1.1),progress(I.time,11,12.5))
+  g.setColor(0,0,0,darkness);g.rectangle('fill',sx,sy,320*s,180*s)
  end
 end
 return I

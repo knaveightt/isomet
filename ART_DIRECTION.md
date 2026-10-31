@@ -60,7 +60,7 @@ Camera offsets and zoom are session preferences, not stored journey fields. On r
 
 ## Source changes
 
-- `visual.lua`: shared colors, cards, buttons, pixel icons, clouds, isometric boxes/roof facets and title diorama.
+- `visual.lua`: shared colors, cards, glossy beveled buttons, rounded illustrated icons, clouds, isometric boxes/roof facets and title diorama.
 - `scenery.lua`: illustrated building/guardian, tree, bench, planter and chest placement, Pip and solid corner footprints.
 - `cartoon.lua` / `cartoon_atlas.lua`: cached illustrated sprites and source rectangles.
 - `bridge.lua`: detailed plank decks, posts and rope handrails.
@@ -79,3 +79,12 @@ The real LÖVE integration test now clears several corridor challenges, waits fo
 This is a broad original art/presentation overhaul, not a claim to finished Township-scale production assets or mobile certification. The present architecture uses a compact set of illustrated building archetypes; unique art for each named interior, more environmental animation, high-resolution mobile layout adaptation and bespoke guardian visuals remain natural next art tasks.
 
 `tests/assets_test.py` additionally checks the three RGBA atlases, all 24 distinct source rectangles, bounds and transparency. The real LÖVE runner captures all four illustrated environments, and the campaign/save regression suite remains unchanged.
+
+
+## Interface art and typography
+
+The interface shares the world's warm mobile-adventure palette: cream inset pages, gold selection frames, soft layered shadows, glossy teal secondary buttons and orange primary actions. A check medallion identifies the chosen traveler and origin; headers use dark teal lettering and a small gold ornament. Hover brightens a button and pressing lowers its face. Mouse/touch hit regions and keyboard navigation retain their existing geometry.
+
+Bundled Open Sans ExtraBold headings and Semibold body/small text render directly at window resolution. Font files, copyright notice and Apache 2.0 terms are in `assets/fonts/`; no system font installation is needed. Cutscene captions also render at window resolution in framed panels, retaining the existing scenes and timing without enlarging tiny caption glyphs. The HUD pairs the traveler portrait with the name/room title and five illustrated heart indicators. Match-three progress and timing challenges use the same beveled frames.
+
+`visual.lua` owns the reusable card, button, centered label, heading, selection badge, heart, progress and icon drawing functions. The setup screens, adventure panels and HUD consume those helpers so future screens can follow the same style. The real LÖVE test captures setup, inventory, the six-option satchel menu, puzzles, challenges and all three cutscenes at 800×600 as well as the default size.

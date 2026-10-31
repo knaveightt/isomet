@@ -127,3 +127,6 @@ The optional atlas check uses Pillow (`python3 -m pip install Pillow` if absent)
 The campaign tests cover 200 seeded layouts and boards, dependency ordering, serialization, unique rewards, lives, both finale prerequisites, free recharge, crafting and overflow. The isolated LÖVE test uses real callbacks and puzzle rules to exercise setup, passage unlocking, all 32 tasks, rescue, failure retention, resume and minimum-size rendering. It saves preview screenshots under the temporary directory printed at completion and leaves normal player saves untouched.
 
 For a brief startup-only check: `XDG_DATA_HOME=/tmp/miswander-smoke ISOMET_SMOKE=1 love .`.
+
+
+The illustrated interface now matches the world: cream-and-gold panels, glossy teal/orange buttons, portrait and heart HUD, selection badges, and bundled readable typography. Cutscene captions render at full window resolution. See [ART_DIRECTION.md](ART_DIRECTION.md) for the shared UI helpers and font credits.

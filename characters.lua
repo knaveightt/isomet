@@ -45,19 +45,21 @@ function C.mousepressed(x,y,button)
 end
 function C.draw(fonts,time)
  local g=love.graphics;local w,h,left,top=layout()
- g.setFont(fonts.title);V.color(V.ink);g.printf('Choose your traveler',0,top-89,w,'center')
- g.setFont(fonts.body);V.color(V.muted);g.printf('A little courage. A familiar face. An extraordinary journey.',0,top-49,w,'center')
+ V.heading('Choose your traveler',0,top-89,w,fonts.title)
+ g.setFont(fonts.body);V.color(V.muted);g.printf('A little courage. A familiar face. An extraordinary journey.',0,top-36,w,'center')
  for i=1,8 do
   local x=left+((i-1)%4)*170;local y=top+math.floor((i-1)/4)*142
   V.card(x,y,154,128,i==C.selected)
   V.color({.77,.89,.72});g.ellipse('fill',x+77,y+77,28,7)
   Art.traveler(C.images[i],x+77,y+84,77,82)
+  if i==C.selected then V.badge(x+134,y+18)end
   g.setFont(fonts.body);V.color(V.ink);g.printf((i<=4 and 'Male' or 'Female')..' · '..variants[(i-1)%4+1].label,x,y+91,154,'center')
  end
  g.setFont(fonts.body);V.color(V.ink);g.printf('Character name',0,top+290,w,'center')
  V.card(w/2-220,top+313,440,39,false)
+ V.color({.91,.87,.72});g.rectangle('fill',w/2-212,top+319,424,27,8,8)
  V.color(V.ink);g.printf(C.name..(math.floor(time*2)%2==0 and '|'or''),w/2-208,top+324,416,'center')
- V.button(w/2-130,top+366,260,44,true);g.setColor(1,1,.94);g.printf('Continue',w/2-130,top+380,260,'center')
+ V.button(w/2-130,top+366,260,44,true);V.buttonText('Continue',w/2-130,top+366,260,44,fonts.body)
  g.setFont(fonts.small);V.color(C.message and {.68,.25,.19}or V.muted);g.printf(C.message or 'Click a traveler or use arrow keys · Type your name (20 characters) · Enter to begin',0,top+427,w,'center')
 end
 return C
