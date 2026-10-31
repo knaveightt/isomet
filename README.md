@@ -8,6 +8,8 @@ This project contains the **2D LÖVE game**.
 
 ## Launch
 
+**Windows users:** follow the [Windows setup and launch guide](WINDOWS.md) for installation, launching without a terminal, desktop shortcuts, and troubleshooting.
+
 From this project folder:
 
 ```sh
