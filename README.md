@@ -2,7 +2,7 @@
 
 A Lua / LÖVE 11.5 exploration-and-puzzle prototype. Follow a loved one into a refuge assembled from stolen pieces of people's homes. A helpful Warden, a paper moth named Pip, and familiar objects lead you toward the truth—and a way home.
 
-This update applies to the **2D LÖVE game**. The separate `godot/` prototype and existing Windows ZIPs are unchanged and still contain their earlier ISOMET builds.
+This project contains the **2D LÖVE game**.
 
 ![Illustrated cartoon tabletop preview](docs/images/miswander-illustrated-tabletop.png)
 

@@ -31,8 +31,6 @@ The three-second splash now uses an original bright procedural portal diorama ma
 | `pixel_font.lua` | Crisp image-font lettering for the animated introductions |
 | `conf.lua` | Miswander window title; existing save identity retained |
 
-No Godot source or existing executable archive is updated by this change.
-
 ## Campaign geometry and stable IDs
 
 Each environment has fifteen room records: seven corridor spaces and eight destination interiors. For level index `l`, local slot `s` maps to `(l-1)*15+s`. Slots 1–7 are corridor anchors; slots 8–15 are doors 1–8. IDs remain stable across launches and regenerated dimensions.
