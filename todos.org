@@ -1,0 +1,5 @@
+* General TODO
+** TODO Maze as one whole board with 
+** TODO Intro Graphics / Dialogs / Characters
+** TODO Better Text Boxes
+** TODO Sound / Music
